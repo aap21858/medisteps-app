@@ -7,9 +7,14 @@ interface NavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   userRole: 'admin' | 'receptionist' | 'doctor' | 'billing';
+  currentUser: {
+    name: string;
+    email: string;
+    avatar: string;
+  };
 }
 
-const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, userRole }) => {
+const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, userRole, currentUser }) => {
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home, roles: ['admin', 'receptionist', 'doctor', 'billing'] },
     { id: 'patients', label: 'Patients', icon: Users, roles: ['admin', 'receptionist', 'doctor'] },
@@ -57,15 +62,21 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, userRol
         </div>
       </div>
       
-      <div className="p-6 mt-auto">
-        <div className="p-3 bg-accent rounded-lg text-center">
-          <p className="text-xs font-medium">Role: {userRole}</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {userRole === 'admin' ? 'Full Access' : 
-             userRole === 'doctor' ? 'Patient & Appointment Access' :
-             userRole === 'receptionist' ? 'Front Desk Access' :
-             'Billing Access'}
-          </p>
+      <div className="p-6 border-t border-border">
+        <div className="flex items-center gap-3 p-3 bg-accent rounded-lg">
+          <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-semibold text-sm">
+            {currentUser.avatar}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-medium text-sm truncate">{currentUser.name}</p>
+            <p className="text-xs text-muted-foreground truncate">{currentUser.email}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {userRole === 'admin' ? 'Administrator' : 
+               userRole === 'doctor' ? 'Doctor' :
+               userRole === 'receptionist' ? 'Receptionist' :
+               'Billing Specialist'}
+            </p>
+          </div>
         </div>
       </div>
     </nav>

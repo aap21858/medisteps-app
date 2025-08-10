@@ -8,6 +8,15 @@ import heroImage from '@/assets/medical-hero.jpg';
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [userRole, setUserRole] = useState<'admin' | 'receptionist' | 'doctor' | 'billing'>('admin');
+  
+  const userProfiles = {
+    admin: { name: 'Dr. Sarah Wilson', email: 'sarah.wilson@medclinic.com', avatar: 'SW' },
+    receptionist: { name: 'Emily Johnson', email: 'emily.johnson@medclinic.com', avatar: 'EJ' },
+    doctor: { name: 'Dr. Michael Chen', email: 'michael.chen@medclinic.com', avatar: 'MC' },
+    billing: { name: 'Robert Martinez', email: 'robert.martinez@medclinic.com', avatar: 'RM' }
+  };
+  
+  const currentUser = userProfiles[userRole];
 
   const renderContent = () => {
     switch (activeTab) {
@@ -67,6 +76,7 @@ const Index = () => {
           activeTab={activeTab} 
           onTabChange={setActiveTab} 
           userRole={userRole}
+          currentUser={currentUser}
         />
       </div>
       
