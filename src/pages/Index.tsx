@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Navigation from '@/components/layout/navigation';
 import DashboardOverview from '@/components/dashboard/dashboard-overview';
 import PatientRegistration from '@/components/patients/patient-registration';
+import AppointmentScheduler from '@/components/appointments/appointment-scheduler';
 import heroImage from '@/assets/medical-hero.jpg';
 
 const Index = () => {
@@ -15,12 +16,7 @@ const Index = () => {
       case 'patients':
         return <PatientRegistration />;
       case 'appointments':
-        return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Appointment Scheduling</h2>
-            <p className="text-muted-foreground">Coming soon - Full appointment management system</p>
-          </div>
-        );
+        return <AppointmentScheduler />;
       case 'billing':
         return (
           <div className="text-center py-12">
