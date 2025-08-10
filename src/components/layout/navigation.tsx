@@ -24,8 +24,8 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, userRol
   );
 
   return (
-    <nav className="bg-card border-r border-border">
-      <div className="p-6">
+    <nav className="bg-card border-r border-border flex flex-col h-full">
+      <div className="p-6 flex-1">
         <div className="flex items-center gap-2 mb-8">
           <div className="p-2 bg-primary/10 rounded-lg">
             <Activity className="h-6 w-6 text-primary" />
@@ -57,7 +57,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, userRol
         </div>
       </div>
       
-      <div className="absolute bottom-6 left-6 right-6">
+      <div className="p-6 mt-auto">
         <div className="p-3 bg-accent rounded-lg text-center">
           <p className="text-xs font-medium">Role: {userRole}</p>
           <p className="text-xs text-muted-foreground mt-1">
