@@ -58,7 +58,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, userRol
       </div>
       
       <div className="absolute bottom-6 left-6 right-6">
-        <div className="p-3 bg-accent rounded-lg">
+        <div className="p-3 bg-accent rounded-lg text-center">
           <p className="text-xs font-medium">Role: {userRole}</p>
           <p className="text-xs text-muted-foreground mt-1">
             {userRole === 'admin' ? 'Full Access' : 
