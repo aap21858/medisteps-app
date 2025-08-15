@@ -78,6 +78,15 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, userRol
             </p>
           </div>
         </div>
+        
+        <div className="mt-4">
+          <a 
+            href="/login"
+            className="block w-full text-center py-2 px-3 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
+          >
+            Sign Out
+          </a>
+        </div>
       </div>
     </nav>
   );
