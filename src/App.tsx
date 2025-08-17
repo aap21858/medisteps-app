@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import NotFound from "./pages/NotFound";
+import PrivateRoute from "./lib/privateRouter";
 
 const queryClient = new QueryClient();
 
@@ -17,11 +18,13 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
+            <Route path="/login" element={<Login />} />
+            <Route element={<PrivateRoute />}>
+             <Route path="/" element={<Index />} />
+             <Route path="/forgot-password" element={<ForgotPassword />} />
+             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+             <Route path="*" element={<NotFound />} />
+            </Route>          
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

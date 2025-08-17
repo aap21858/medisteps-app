@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,53 +8,60 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Heart, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import heroImage from '@/assets/medical-hero.jpg';
+import { useApi } from '@/hooks/useApi';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ username?: string; password?: string; invalidCredentials?: string }>({});
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const validateForm = () => {
-    const newErrors: { email?: string; password?: string } = {};
-    
-    if (!email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Please enter a valid email address';
+  const { request } = useApi<{ token: string }>();
+
+  const handleLogin = async () => {
+    console.log("Attempting to login with", { username, password });
+    if (!validateForm()) return;
+    const res = await request("post", "/api/auth/login", {
+      username: username,
+      password: password,
+    });
+    if (res?.token) {
+      console.log("Login successful, token received:", res.token);
+      localStorage.setItem("token", res.token);
+      setIsLoading(true);
+      // Simulate API call
+      setTimeout(() => {
+        setIsLoading(false);
+        toast({
+          title: "Login Successful",
+          description: "Welcome back to MedClinic!",
+        });
+        navigate('/');
+      }, 1500);
     }
+    else {
+      console.error("Login failed, invalid credentials");
+      setErrors({ invalidCredentials: "Invalid username or password" });
+    }    
+  };
+
+  const validateForm = () => {
+    const newErrors: { username?: string; password?: string } = {};
+
+    if(!username)
+      newErrors.username = 'Username is required';
     
     if (!password) {
       newErrors.password = 'Password is required';
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+    } else if (password.length < 3) {
+      newErrors.password = 'Password must be at least 3 characters';
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: "Login Successful",
-        description: "Welcome back to MedClinic!",
-      });
-      navigate('/');
-    }, 1500);
   };
 
   return (
@@ -109,19 +116,18 @@ const Login = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="username">username</Label>
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className={errors.email ? 'border-destructive' : ''}
+                    id="username"
+                    type="text"
+                    placeholder="Enter your username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className={errors.username ? 'border-destructive' : ''}
                   />
-                  {errors.email && (
-                    <p className="text-sm text-destructive">{errors.email}</p>
+                  {errors.username && (
+                    <p className="text-sm text-destructive">{errors.username}</p>
                   )}
                 </div>
 
@@ -153,6 +159,10 @@ const Login = () => {
                   )}
                 </div>
 
+                <div className="mt-4">
+                  <p className="text-sm text-destructive">{errors.invalidCredentials}</p>
+                </div>
+
                 <div className="flex items-center justify-between">
                   <Link 
                     to="/forgot-password" 
@@ -166,10 +176,10 @@ const Login = () => {
                   type="submit" 
                   className="w-full" 
                   disabled={isLoading}
+                  onClick={handleLogin}
                 >
                   {isLoading ? 'Signing in...' : 'Sign in'}
                 </Button>
-              </form>
 
               <div className="mt-6 text-center">
                 <p className="text-sm text-muted-foreground">
@@ -189,7 +199,7 @@ const Login = () => {
             <Alert className="border-accent bg-accent/10">
               <AlertDescription className="text-sm">
                 <strong>Demo credentials:</strong><br />
-                Email: demo@medclinic.com<br />
+                username: demo@medclinic.com<br />
                 Password: password123
               </AlertDescription>
             </Alert>
