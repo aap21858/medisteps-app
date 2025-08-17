@@ -20,6 +20,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, userRol
     { id: 'dashboard', label: 'Dashboard', icon: Home, roles: ['admin', 'receptionist', 'doctor', 'billing'] },
     { id: 'patients', label: 'Patients', icon: Users, roles: ['admin', 'receptionist', 'doctor'] },
     { id: 'appointments', label: 'Appointments', icon: Calendar, roles: ['admin', 'receptionist', 'doctor'] },
+    { id: 'staff', label: 'Staff Management', icon: Users, roles: ['admin'] },
     { id: 'billing', label: 'Billing', icon: CreditCard, roles: ['admin', 'billing', 'receptionist'] },
     { id: 'reports', label: 'Reports', icon: FileText, roles: ['admin', 'billing'] },
     { id: 'settings', label: 'Settings', icon: Settings, roles: ['admin'] },

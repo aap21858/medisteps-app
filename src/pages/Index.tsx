@@ -3,6 +3,7 @@ import Navigation from '@/components/layout/navigation';
 import DashboardOverview from '@/components/dashboard/dashboard-overview';
 import PatientRegistration from '@/components/patients/patient-registration';
 import AppointmentScheduler from '@/components/appointments/appointment-scheduler';
+import StaffManagement from '@/components/staff/staff-management';
 import heroImage from '@/assets/medical-hero.jpg';
 
 const Index = () => {
@@ -26,6 +27,8 @@ const Index = () => {
         return <PatientRegistration />;
       case 'appointments':
         return <AppointmentScheduler />;
+      case 'staff':
+        return <StaffManagement />;
       case 'billing':
         return (
           <div className="text-center py-12">
