@@ -2,6 +2,7 @@ import React from 'react';
 import { Calendar, Users, CreditCard, FileText, Settings, Home, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 interface NavigationProps {
   activeTab: string;
@@ -23,10 +24,16 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, userRol
     { id: 'reports', label: 'Reports', icon: FileText, roles: ['admin', 'billing'] },
     { id: 'settings', label: 'Settings', icon: Settings, roles: ['admin'] },
   ];
+  const navigate = useNavigate();
 
   const availableItems = navigationItems.filter(item => 
     item.roles.includes(userRole)
   );
+
+  const handleSignOut = () => {
+    localStorage.removeItem("token"); // or sessionStorage if you use that
+    navigate('/login'); // redirect to login page
+  };
 
   return (
     <nav className="bg-card border-r border-border flex flex-col h-full">
@@ -80,12 +87,19 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, userRol
         </div>
         
         <div className="mt-4">
-          <a 
+          {/* <a 
             href="/login"
             className="block w-full text-center py-2 px-3 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
           >
             Sign Out
-          </a>
+          </a> */}
+          <Button
+            variant="outline"
+            className="w-full text-center py-2 px-3 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
+            onClick={handleSignOut}
+          >
+            Sign Out
+          </Button>
         </div>
       </div>
     </nav>
