@@ -1,59 +1,59 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Eye, EyeOff, Heart, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import heroImage from '@/assets/medical-hero.jpg';
 import { useApi } from '@/hooks/useApi';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [emailId, setEmailId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ username?: string; password?: string; invalidCredentials?: string }>({});
+  const [errors, setErrors] = useState<{ emailId?: string; password?: string; invalidCredentials?: string }>({});
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const { request } = useApi<{ token: string }>();
 
   const handleLogin = async () => {
-    console.log("Attempting to login with", { username, password });
+    console.log("Attempting to login with", { emailId, password });
     if (!validateForm()) return;
     const res = await request("post", "/api/auth/login", {
-      username: username,
-      password: password,
+      "emailId": emailId,
+      "password": password,
     });
     if (res?.token) {
       console.log("Login successful, token received:", res.token);
       localStorage.setItem("token", res.token);
       setIsLoading(true);
-      // Simulate API call
       setTimeout(() => {
         setIsLoading(false);
         toast({
           title: "Login Successful",
-          description: "Welcome back to MedClinic!",
         });
         navigate('/');
       }, 1500);
     }
     else {
       console.error("Login failed, invalid credentials");
-      setErrors({ invalidCredentials: "Invalid username or password" });
+      setErrors({ invalidCredentials: "Invalid emailId or password" });
     }    
   };
 
   const validateForm = () => {
-    const newErrors: { username?: string; password?: string } = {};
+    const newErrors: { emailId?: string; password?: string } = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if(!username)
-      newErrors.username = 'Username is required';
-    
+    if(!emailId)
+      newErrors.emailId = 'emailId is required';
+    else if (!emailRegex.test(emailId))
+      newErrors.emailId = 'Invalid email id format';
+
     if (!password) {
       newErrors.password = 'Password is required';
     } else if (password.length < 3) {
@@ -77,7 +77,7 @@ const Login = () => {
         <div className="relative z-10 p-12 flex flex-col justify-between text-white">
           <div className="flex items-center gap-2">
             <Heart className="h-8 w-8 text-white" />
-            <span className="text-2xl font-bold">MedClinic</span>
+            <span className="text-2xl font-bold">Healix</span>
           </div>
           <div>
             <h1 className="text-4xl font-bold mb-4">
@@ -104,7 +104,7 @@ const Login = () => {
             
             <div className="lg:hidden flex items-center gap-2 mb-6">
               <Heart className="h-6 w-6 text-primary" />
-              <span className="text-xl font-bold">MedClinic</span>
+              <span className="text-xl font-bold">Healix</span>
             </div>
           </div>
 
@@ -112,22 +112,23 @@ const Login = () => {
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
               <CardDescription className="text-center">
-                Sign in to your MedClinic account
+                Sign in to Healix
               </CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="username">username</Label>
+                  <Label htmlFor="emailId">Email Id</Label>
                   <Input
-                    id="username"
+                    id="emailId"
                     type="text"
-                    placeholder="Enter your username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className={errors.username ? 'border-destructive' : ''}
+                    placeholder="Enter your email id"
+                    value={emailId}
+                    onChange={(e) => setEmailId(e.target.value)}
+                    className={errors.emailId ? 'border-destructive' : ''}
                   />
-                  {errors.username && (
-                    <p className="text-sm text-destructive">{errors.username}</p>
+                  {errors.emailId && (
+                    <p className="text-sm text-destructive">{errors.emailId}</p>
                   )}
                 </div>
 
@@ -180,30 +181,9 @@ const Login = () => {
                 >
                   {isLoading ? 'Signing in...' : 'Sign in'}
                 </Button>
-
-              <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Don't have an account?{' '}
-                  <Link 
-                    to="/register" 
-                    className="text-primary hover:text-primary-hover underline-offset-4 hover:underline"
-                  >
-                    Sign up
-                  </Link>
-                </p>
               </div>
             </CardContent>
           </Card>
-
-          <div className="mt-6 text-center">
-            <Alert className="border-accent bg-accent/10">
-              <AlertDescription className="text-sm">
-                <strong>Demo credentials:</strong><br />
-                username: demo@medclinic.com<br />
-                Password: password123
-              </AlertDescription>
-            </Alert>
-          </div>
         </div>
       </div>
     </div>

@@ -44,7 +44,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, userRol
             <Activity className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="font-bold text-lg">MedClinic</h1>
+            <h1 className="font-bold text-lg">Healix</h1>
             <p className="text-xs text-muted-foreground">Management System</p>
           </div>
         </div>

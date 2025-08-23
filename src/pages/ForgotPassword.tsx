@@ -61,7 +61,7 @@ const ForgotPassword = () => {
             
             <div className="flex items-center gap-2 mb-6">
               <Heart className="h-6 w-6 text-primary" />
-              <span className="text-xl font-bold">MedClinic</span>
+              <span className="text-xl font-bold">Healix</span>
             </div>
           </div>
 
@@ -118,7 +118,7 @@ const ForgotPassword = () => {
           
           <div className="flex items-center gap-2 mb-6">
             <Heart className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">MedClinic</span>
+            <span className="text-xl font-bold">Healix</span>
           </div>
         </div>
 
