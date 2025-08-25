@@ -23,6 +23,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, userRol
     { id: 'staff', label: 'Staff Management', icon: Users, roles: ['admin'] },
     { id: 'billing', label: 'Billing', icon: CreditCard, roles: ['admin', 'billing', 'receptionist'] },
     { id: 'reports', label: 'Reports', icon: FileText, roles: ['admin', 'billing'] },
+    { id: 'set-password', label: 'Set New Password', icon: Settings, roles: ['admin', 'receptionist', 'doctor', 'billing'] },
     { id: 'settings', label: 'Settings', icon: Settings, roles: ['admin'] },
   ];
   const navigate = useNavigate();

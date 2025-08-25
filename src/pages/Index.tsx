@@ -4,6 +4,7 @@ import DashboardOverview from '@/components/dashboard/dashboard-overview';
 import PatientRegistration from '@/components/patients/patient-registration';
 import AppointmentScheduler from '@/components/appointments/appointment-scheduler';
 import StaffManagement from '@/components/staff/staff-management';
+import { SetPassword } from '@/components/staff/set-password';
 import heroImage from '@/assets/medical-hero.jpg';
 
 const Index = () => {
@@ -43,6 +44,8 @@ const Index = () => {
             <p className="text-muted-foreground">Coming soon - Detailed reporting system</p>
           </div>
         );
+      case 'set-password':
+        return <SetPassword />;
       case 'settings':
         return (
           <div className="space-y-6">
