@@ -18,9 +18,10 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const { request } = useApi<{ token: string }>();
+  const { request } = useApi();
 
-  const handleLogin = async () => {
+  const handleLogin = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     console.log("Attempting to login with", { emailId, password });
     if (!validateForm()) return;
     const res = await request("post", "/api/auth/login", {
@@ -116,7 +117,7 @@ const Login = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="emailId">Email Id</Label>
                   <Input
@@ -181,7 +182,7 @@ const Login = () => {
                 >
                   {isLoading ? 'Signing in...' : 'Sign in'}
                 </Button>
-              </div>
+              </form>
             </CardContent>
           </Card>
         </div>

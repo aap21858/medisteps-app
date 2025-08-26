@@ -1,18 +1,31 @@
-import { useState } from "react";
+import { AnimationEventHandler, AriaRole, ClipboardEventHandler, CompositionEventHandler, CSSProperties, DragEventHandler, FocusEventHandler, FormEventHandler, Key, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, ReactEventHandler, ReactNode, RefAttributes, TouchEventHandler, TransitionEventHandler, UIEventHandler, useEffect, useState, WheelEventHandler } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useSearchParams } from "react-router-dom";
+import { useApi } from "@/hooks/useApi";
 
 export const SetPassword = () => {
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+  const { request, data, error, responseCode } = useApi();
   const [formData, setFormData] = useState({
-    username: "",
     newPassword: "",
     confirmPassword: ""
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!isLoading) {
+      console.log(data);
+      console.log(error);
+      console.log(responseCode);
+      
+    }
+  }, [isLoading]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -46,28 +59,27 @@ export const SetPassword = () => {
     setIsLoading(true);
     
     // Simulate API call
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await request("post", "/api/auth/set-password", { "token": token, "password": formData.newPassword });
       
-      toast({
-        title: "Success",
-        description: "Password updated successfully"
-      });
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      if(data) {
+        toast({
+          title: "Success",
+          description: data.token,
+        });
+      }
+      else if (error) {
+        toast({
+          title: "Error",
+          description: error,
+          variant: "destructive"
+        });
+      }
       
       setFormData({
-        username: "",
         newPassword: "",
         confirmPassword: ""
       });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update password",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   return (
@@ -81,24 +93,11 @@ export const SetPassword = () => {
         <CardHeader>
           <CardTitle>Change Password</CardTitle>
           <CardDescription>
-            Enter your username and new password details
+            Enter new password
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                value={formData.username}
-                onChange={handleInputChange}
-                placeholder="Enter your username"
-                required
-              />
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="newPassword">New Password</Label>
               <Input

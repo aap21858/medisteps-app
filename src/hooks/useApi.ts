@@ -1,28 +1,34 @@
 import apiClient from "@/lib/apiClient";
+import { set } from "date-fns";
 import { useState } from "react";
 
 type HttpMethod = "get" | "post" | "put" | "delete";
 
-export function useApi<T = any>() {
-  const [data, setData] = useState<T | null>(null);
-  const [error, setError] = useState<string | null>(null);
+export function useApi() {
+  const [data, setData] = useState(null);
+  const [responseCode, setResponseCode] = useState(null);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const request = async (
     method: HttpMethod,
     url: string,
     body?: any
-  ): Promise<T | null> => {
+  ): Promise<any> => {
     setLoading(true);
     setError(null);
+    setData(null);
+    setResponseCode(null);
 
     try {
-      const response = await apiClient.request<T>({
+      const response = await apiClient.request({
         method,
         url,
         data: body,
       });
+      console.log("API response:", response);
       setData(response.data);
+      setResponseCode(response.status);
       return response.data;
     } catch (err: any) {
       if (err.response?.status === 401) {
@@ -36,5 +42,5 @@ export function useApi<T = any>() {
     }
   };
 
-  return { data, error, loading, request };
+  return { data, error, loading, request, responseCode };
 }

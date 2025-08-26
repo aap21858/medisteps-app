@@ -2,100 +2,96 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Plus, Edit, Trash2, UserPlus, Users, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface StaffMember {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'receptionist' | 'doctor' | 'billing';
-  department: string;
-  phone: string;
-  status: 'active' | 'inactive';
-}
+import { Staff } from './model/Staff';
+import { useApi } from '@/hooks/useApi';
 
 const StaffManagement = () => {
-  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([
+  const { request } = useApi();
+  const [staffMembers, setStaffMembers] = useState<Staff[]>([
     {
       id: '1',
-      name: 'Dr. Sarah Wilson',
-      email: 'sarah.wilson@medclinic.com',
-      role: 'admin',
-      department: 'Administration',
-      phone: '+1 (555) 123-4567',
-      status: 'active'
+      fullName: 'Dr. Sarah Wilson',
+      emailId: 'sarah.wilson@medclinic.com',
+      role: 'ADMIN',
+      contactNumber: '+1 (555) 123-4567',
+      status: 'ACTIVE'
     },
     {
       id: '2',
-      name: 'Emily Johnson',
-      email: 'emily.johnson@medclinic.com',
-      role: 'receptionist',
-      department: 'Front Desk',
-      phone: '+1 (555) 234-5678',
-      status: 'active'
+      fullName: 'Emily Johnson',
+      emailId: 'emily.johnson@medclinic.com',
+      role: 'RECEPTIONIST',
+      contactNumber: '+1 (555) 234-5678',
+      status: 'ACTIVE'
     },
     {
       id: '3',
-      name: 'Dr. Michael Chen',
-      email: 'michael.chen@medclinic.com',
-      role: 'doctor',
-      department: 'Cardiology',
-      phone: '+1 (555) 345-6789',
-      status: 'active'
+      fullName: 'Dr. Michael Chen',
+      emailId: 'michael.chen@medclinic.com',
+      role: 'DOCTOR',
+      contactNumber: '+1 (555) 345-6789',
+      status: 'ACTIVE'
     },
     {
       id: '4',
-      name: 'Robert Martinez',
-      email: 'robert.martinez@medclinic.com',
-      role: 'billing',
-      department: 'Finance',
-      phone: '+1 (555) 456-7890',
-      status: 'active'
+      fullName: 'Robert Martinez',
+      emailId: 'robert.martinez@medclinic.com',
+      role: 'RECEPTIONIST',
+      contactNumber: '+1 (555) 456-7890',
+      status: 'ACTIVE'
     }
   ]);
 
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newStaff, setNewStaff] = useState({
-    name: '',
-    email: '',
+  const [newStaff, setNewStaff] = useState<Staff>({
+    fullName: '',
+    emailId: '',
     role: '',
-    department: '',
-    phone: ''
+    contactNumber: '',
   });
 
-  const handleAddStaff = (e: React.FormEvent) => {
+  const handleAddStaff = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!newStaff.name || !newStaff.email || !newStaff.role || !newStaff.department || !newStaff.phone) {
+
+    if (!newStaff.fullName || !newStaff.emailId || !newStaff.role || !newStaff.contactNumber) {
       toast.error('Please fill in all fields');
       return;
     }
 
-    const staffMember: StaffMember = {
-      id: Date.now().toString(),
+    const staffMember: Staff = {
+      id: '',
       ...newStaff,
-      role: newStaff.role as 'admin' | 'receptionist' | 'doctor' | 'billing',
-      status: 'active'
+      role: newStaff.role as 'ADMIN' | 'RECEPTIONIST' | 'DOCTOR',
+      status: 'PENDING',
+      fullName: '',
+      contactNumber: ''
     };
 
-    setStaffMembers([...staffMembers, staffMember]);
-    setNewStaff({ name: '', email: '', role: '', department: '', phone: '' });
+    // setStaffMembers([...staffMembers, staffMember]);
+    // setNewStaff({ fullName: '', emailId: '', role: '', department: '', contactNumber: '' });
+    
+    try {
+      const res = await request("post", "/api/admin/register", newStaff);
+    } catch (error) {
+      toast.error('Failed to add staff member');
+    }
+
     setShowAddForm(false);
     toast.success('Staff member added successfully');
   };
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800';
-      case 'doctor': return 'bg-blue-100 text-blue-800';
-      case 'receptionist': return 'bg-green-100 text-green-800';
-      case 'billing': return 'bg-purple-100 text-purple-800';
+      case 'ADMIN': return 'bg-red-100 text-red-800';
+      case 'DOCTOR': return 'bg-blue-100 text-blue-800';
+      case 'RECEPTIONIST': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -126,8 +122,8 @@ const StaffManagement = () => {
                       <Label htmlFor="name">Full Name</Label>
                       <Input
                         id="name"
-                        value={newStaff.name}
-                        onChange={(e) => setNewStaff({...newStaff, name: e.target.value})}
+                        value={newStaff.fullName}
+                        onChange={(e) => setNewStaff({...newStaff, fullName: e.target.value})}
                         placeholder="Enter full name"
                       />
                     </div>
@@ -136,8 +132,8 @@ const StaffManagement = () => {
                       <Input
                         id="email"
                         type="email"
-                        value={newStaff.email}
-                        onChange={(e) => setNewStaff({...newStaff, email: e.target.value})}
+                        value={newStaff.emailId}
+                        onChange={(e) => setNewStaff({...newStaff, emailId: e.target.value})}
                         placeholder="Enter email address"
                       />
                     </div>
@@ -148,35 +144,44 @@ const StaffManagement = () => {
                           <SelectValue placeholder="Select role" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="admin">Administrator</SelectItem>
-                          <SelectItem value="doctor">Doctor</SelectItem>
-                          <SelectItem value="receptionist">Receptionist</SelectItem>
-                          <SelectItem value="billing">Billing Specialist</SelectItem>
+                          <SelectItem value="Admin">Administrator</SelectItem>
+                          <SelectItem value="Doctor">Doctor</SelectItem>
+                          <SelectItem value="Receptionist">Receptionist</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2">
+                    {/* <div className="space-y-2">
                       <Label htmlFor="department">Department</Label>
+                      <Select onValueChange={(value) => setNewStaff({...newStaff, department: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select department" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Admin">Administrator</SelectItem>
+                          <SelectItem value="Doctor">Doctor</SelectItem>
+                          <SelectItem value="Receptionist">Receptionist</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <Input
                         id="department"
                         value={newStaff.department}
                         onChange={(e) => setNewStaff({...newStaff, department: e.target.value})}
                         placeholder="Enter department"
                       />
-                    </div>
+                    </div> */}
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
+                      <Label htmlFor="contact">Contact Number</Label>
                       <Input
-                        id="phone"
-                        value={newStaff.phone}
-                        onChange={(e) => setNewStaff({...newStaff, phone: e.target.value})}
-                        placeholder="Enter phone number"
+                        id="contact"
+                        value={newStaff.contactNumber}
+                        onChange={(e) => setNewStaff({...newStaff, contactNumber: e.target.value})}
+                        placeholder="Enter contact number"
                       />
                     </div>
                   </div>
                   <div className="flex gap-2">
                     <Button type="submit">Add Staff Member</Button>
-                    <Button type="button" variant="outline" onClick={() => setNewStaff({ name: '', email: '', role: '', department: '', phone: '' })}>
+                    <Button type="button" variant="outline" onClick={() => setNewStaff({ fullName: '', emailId: '', role: '', contactNumber: '' })}>
                       Clear Form
                     </Button>
                   </div>
@@ -202,7 +207,6 @@ const StaffManagement = () => {
                       <TableHead>Name</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Role</TableHead>
-                      <TableHead>Department</TableHead>
                       <TableHead>Phone</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Actions</TableHead>
@@ -211,17 +215,16 @@ const StaffManagement = () => {
                   <TableBody>
                     {staffMembers.map((staff) => (
                       <TableRow key={staff.id}>
-                        <TableCell className="font-medium">{staff.name}</TableCell>
-                        <TableCell>{staff.email}</TableCell>
+                        <TableCell className="font-medium">{staff.fullName}</TableCell>
+                        <TableCell>{staff.emailId}</TableCell>
                         <TableCell>
                           <Badge className={getRoleBadgeColor(staff.role)}>
                             {staff.role}
                           </Badge>
                         </TableCell>
-                        <TableCell>{staff.department}</TableCell>
-                        <TableCell>{staff.phone}</TableCell>
+                        <TableCell>{staff.contactNumber}</TableCell>
                         <TableCell>
-                          <Badge variant={staff.status === 'active' ? 'default' : 'secondary'}>
+                          <Badge variant={staff.status === 'ACTIVE' ? 'default' : 'secondary'}>
                             {staff.status}
                           </Badge>
                         </TableCell>

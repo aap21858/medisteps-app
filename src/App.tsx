@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import NotFound from "./pages/NotFound";
 import PrivateRoute from "./lib/privateRouter";
+import { SetPassword } from "./components/staff/set-password";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/set-password" element={<SetPassword />} />
             <Route element={<PrivateRoute />}>
              <Route path="/" element={<Index />} />
              <Route path="/forgot-password" element={<ForgotPassword />} />
