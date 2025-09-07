@@ -1,92 +1,101 @@
-import { AnimationEventHandler, AriaRole, ClipboardEventHandler, CompositionEventHandler, CSSProperties, DragEventHandler, FocusEventHandler, FormEventHandler, Key, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, ReactEventHandler, ReactNode, RefAttributes, TouchEventHandler, TransitionEventHandler, UIEventHandler, useEffect, useState, WheelEventHandler } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useSearchParams } from "react-router-dom";
-import { useApi } from "@/hooks/useApi";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import useAuthorizedApi from "@/hooks/useAuthorizedApi";
 
 export const SetPassword = () => {
+  const navigate = useNavigate();
+  const { request } = useAuthorizedApi<string>();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
-  const { request, data, error, responseCode } = useApi();
   const [formData, setFormData] = useState({
     newPassword: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (!isLoading) {
-      console.log(data);
-      console.log(error);
-      console.log(responseCode);
-      
-    }
-  }, [isLoading]);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.newPassword !== formData.confirmPassword) {
       toast({
         title: "Error",
         description: "Passwords do not match",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     if (formData.newPassword.length < 6) {
       toast({
-        title: "Error", 
+        title: "Error",
         description: "Password must be at least 6 characters long",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
-    
-    // Simulate API call
-      await request("post", "/api/auth/set-password", { "token": token, "password": formData.newPassword });
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      if(data) {
+
+    const res = await request({
+      url: "/api/auth/set-password",
+      method: "POST",
+      data: { token: token, password: formData.newPassword },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    console.log(res.data, res.error, res);
+    if (res.data) {
+      setTimeout(() => {
+        setIsLoading(false);
         toast({
           title: "Success",
-          description: data.token,
+          description: res.data,
+          variant: "default",
         });
-      }
-      else if (error) {
-        toast({
-          title: "Error",
-          description: error,
-          variant: "destructive"
-        });
-      }
-      
-      setFormData({
-        newPassword: "",
-        confirmPassword: ""
+      }, 1500);
+      navigate("/");
+    } else if (res.error) {
+      toast({
+        title: "Error",
+        description: res.error,
+        variant: "destructive",
       });
+    }
+
+    setFormData({
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setIsLoading(false);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-8 bg-muted/30">
       <Card className="w-full max-w-md border-border/50 shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">Set New Password</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">
+            Set New Password
+          </CardTitle>
           <CardDescription className="text-center">
             Enter new password
           </CardDescription>

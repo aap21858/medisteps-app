@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Eye, EyeOff, Heart, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import heroImage from '@/assets/medical-hero.jpg';
-import { useApi } from '@/hooks/useApi';
+import useAuthorizedApi from '@/hooks/useAuthorizedApi';
 
 const Login = () => {
   const [emailId, setEmailId] = useState('');
@@ -18,24 +18,29 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const { request } = useApi();
+  const { request } = useAuthorizedApi<any>();
 
   const handleLogin = async (e?: React.FormEvent) => {
     e?.preventDefault();
     console.log("Attempting to login with", { emailId, password });
     if (!validateForm()) return;
-    const res = await request("post", "/api/auth/login", {
-      "emailId": emailId,
-      "password": password,
+    const res = await request({
+      method: "post",
+      url: "/api/auth/login",
+      data: {
+        emailId,
+        password,
+      },
     });
-    if (res?.token) {
-      console.log("Login successful, token received:", res.token);
-      localStorage.setItem("token", res.token);
+    if (res.data) {
+      console.log("Login successful, token received:", res.data.token);
+      localStorage.setItem("token", res.data.token);
       setIsLoading(true);
       setTimeout(() => {
         setIsLoading(false);
         toast({
           title: "Login Successful",
+          variant: "default"
         });
         navigate('/');
       }, 1500);

@@ -1,19 +1,27 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Heart, ArrowLeft, CheckCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Heart, ArrowLeft, CheckCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import useAuthorizedApi from "@/hooks/useAuthorizedApi";
 
 const ForgotPassword = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isEmailSent, setIsEmailSent] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const { toast } = useToast();
+  const { request } = useAuthorizedApi<any>();
 
   const validateEmail = (email: string) => {
     return /\S+@\S+\.\S+/.test(email);
@@ -21,29 +29,43 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    
+    setError("");
+
     if (!email) {
-      setError('Email is required');
+      setError("Email is required");
       return;
     }
-    
+
     if (!validateEmail(email)) {
-      setError('Please enter a valid email address');
+      setError("Please enter a valid email address");
       return;
     }
 
     setIsLoading(true);
-    
+
+    const response = await request({
+      method: "get",
+      url: "/api/auth/forgot-password",
+      params: {
+        "emailId": email,
+      },
+    });
+
     // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      setIsEmailSent(true);
-      toast({
-        title: "Reset Email Sent",
-        description: "Check your inbox for password reset instructions.",
-      });
-    }, 1500);
+    if (response.data) {
+      setTimeout(() => {
+        setIsEmailSent(true);
+        toast({
+          title: "Reset Password Email Sent",
+          description: "Check your inbox for password reset instructions.",
+        });
+      }, 1500);
+    } else if (response.error) {
+      setError(
+        response.error || "Failed to send reset email. Please try again."
+      );
+    }
+    setIsLoading(false);
   };
 
   if (isEmailSent) {
@@ -51,14 +73,14 @@ const ForgotPassword = () => {
       <div className="min-h-screen flex items-center justify-center p-8 bg-muted/30">
         <div className="w-full max-w-md">
           <div className="mb-8">
-            <Link 
-              to="/login" 
+            <Link
+              to="/login"
               className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
             >
               <ArrowLeft className="h-4 w-4" />
               Back to login
             </Link>
-            
+
             <div className="flex items-center gap-2 mb-6">
               <Heart className="h-6 w-6 text-primary" />
               <span className="text-xl font-bold">Healix</span>
@@ -70,7 +92,9 @@ const ForgotPassword = () => {
               <div className="flex justify-center mb-4">
                 <CheckCircle className="h-16 w-16 text-success" />
               </div>
-              <CardTitle className="text-2xl font-bold">Check your email</CardTitle>
+              <CardTitle className="text-2xl font-bold">
+                Check your email
+              </CardTitle>
               <CardDescription>
                 We've sent password reset instructions to {email}
               </CardDescription>
@@ -78,20 +102,20 @@ const ForgotPassword = () => {
             <CardContent className="space-y-4">
               <Alert className="border-success bg-success/10">
                 <AlertDescription>
-                  If you don't see the email in your inbox, please check your spam folder.
-                  The reset link will expire in 24 hours.
+                  If you don't see the email in your inbox, please check your
+                  spam folder. The reset link will expire in 24 hours.
                 </AlertDescription>
               </Alert>
-              
+
               <div className="flex flex-col gap-2">
                 <Button asChild>
                   <Link to="/login">Back to login</Link>
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setIsEmailSent(false);
-                    setEmail('');
+                    setEmail("");
                   }}
                 >
                   Try different email
@@ -108,14 +132,14 @@ const ForgotPassword = () => {
     <div className="min-h-screen flex items-center justify-center p-8 bg-muted/30">
       <div className="w-full max-w-md">
         <div className="mb-8">
-          <Link 
-            to="/login" 
+          <Link
+            to="/login"
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to login
           </Link>
-          
+
           <div className="flex items-center gap-2 mb-6">
             <Heart className="h-6 w-6 text-primary" />
             <span className="text-xl font-bold">Healix</span>
@@ -124,9 +148,12 @@ const ForgotPassword = () => {
 
         <Card className="border-border/50 shadow-lg">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Reset your password</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center">
+              Reset your password
+            </CardTitle>
             <CardDescription className="text-center">
-              Enter your email address and we'll send you a link to reset your password
+              Enter your email address and we'll send you a link to reset your
+              password
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -139,27 +166,21 @@ const ForgotPassword = () => {
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={error ? 'border-destructive' : ''}
+                  className={error ? "border-destructive" : ""}
                 />
-                {error && (
-                  <p className="text-sm text-destructive">{error}</p>
-                )}
+                {error && <p className="text-sm text-destructive">{error}</p>}
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={isLoading}
-              >
-                {isLoading ? 'Sending...' : 'Send reset email'}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Sending..." : "Send reset email"}
               </Button>
             </form>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Remember your password?{' '}
-                <Link 
-                  to="/login" 
+                Remember your password?{" "}
+                <Link
+                  to="/login"
                   className="text-primary hover:text-primary-hover underline-offset-4 hover:underline"
                 >
                   Sign in

@@ -1,53 +1,59 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import PhotoUpload from '@/components/ui/photo-upload';
-import { User, Heart, Shield, Phone } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import PhotoUpload from "@/components/ui/photo-upload";
+import { User, Heart, Shield, Phone } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const PatientRegistration: React.FC = () => {
   const [formData, setFormData] = useState({
     // Personal Information
-    firstName: '',
-    lastName: '',
-    dateOfBirth: '',
-    gender: '',
-    phone: '',
-    email: '',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    
+    firstName: "",
+    lastName: "",
+    dateOfBirth: "",
+    gender: "",
+    phone: "",
+    email: "",
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+
     // Emergency Contact
-    emergencyName: '',
-    emergencyPhone: '',
-    emergencyRelation: '',
-    
+    emergencyName: "",
+    emergencyPhone: "",
+    emergencyRelation: "",
+
     // Insurance Information
-    insuranceProvider: '',
-    policyNumber: '',
-    groupNumber: '',
-    
+    insuranceProvider: "",
+    policyNumber: "",
+    groupNumber: "",
+
     // Medical History
-    allergies: '',
-    medications: '',
-    medicalHistory: '',
-    preferredLanguage: 'English',
-    communicationMethod: 'phone'
+    allergies: "",
+    medications: "",
+    medicalHistory: "",
+    preferredLanguage: "English",
+    communicationMethod: "phone",
   });
 
   const [photoId, setPhotoId] = useState<Blob | null>(null);
   const { toast } = useToast();
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handlePhotoUpload = (file: Blob) => {
@@ -60,9 +66,14 @@ const PatientRegistration: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Basic validation
-    if (!formData.firstName || !formData.lastName || !formData.dateOfBirth || !formData.phone) {
+    if (
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.dateOfBirth ||
+      !formData.phone
+    ) {
       toast({
         title: "Missing required fields",
         description: "Please fill in all required fields.",
@@ -79,11 +90,27 @@ const PatientRegistration: React.FC = () => {
 
     // Reset form
     setFormData({
-      firstName: '', lastName: '', dateOfBirth: '', gender: '', phone: '', email: '',
-      address: '', city: '', state: '', zipCode: '', emergencyName: '', emergencyPhone: '',
-      emergencyRelation: '', insuranceProvider: '', policyNumber: '', groupNumber: '',
-      allergies: '', medications: '', medicalHistory: '', preferredLanguage: 'English',
-      communicationMethod: 'phone'
+      firstName: "",
+      lastName: "",
+      dateOfBirth: "",
+      gender: "",
+      phone: "",
+      email: "",
+      address: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      emergencyName: "",
+      emergencyPhone: "",
+      emergencyRelation: "",
+      insuranceProvider: "",
+      policyNumber: "",
+      groupNumber: "",
+      allergies: "",
+      medications: "",
+      medicalHistory: "",
+      preferredLanguage: "English",
+      communicationMethod: "phone",
     });
     setPhotoId(null);
   };
@@ -133,7 +160,9 @@ const PatientRegistration: React.FC = () => {
                     <Input
                       id="firstName"
                       value={formData.firstName}
-                      onChange={(e) => handleInputChange('firstName', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("firstName", e.target.value)
+                      }
                       required
                     />
                   </div>
@@ -142,7 +171,9 @@ const PatientRegistration: React.FC = () => {
                     <Input
                       id="lastName"
                       value={formData.lastName}
-                      onChange={(e) => handleInputChange('lastName', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("lastName", e.target.value)
+                      }
                       required
                     />
                   </div>
@@ -155,13 +186,20 @@ const PatientRegistration: React.FC = () => {
                       id="dateOfBirth"
                       type="date"
                       value={formData.dateOfBirth}
-                      onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("dateOfBirth", e.target.value)
+                      }
                       required
                     />
                   </div>
                   <div>
                     <Label htmlFor="gender">Gender</Label>
-                    <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
+                    <Select
+                      value={formData.gender}
+                      onValueChange={(value) =>
+                        handleInputChange("gender", value)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
@@ -169,7 +207,9 @@ const PatientRegistration: React.FC = () => {
                         <SelectItem value="male">Male</SelectItem>
                         <SelectItem value="female">Female</SelectItem>
                         <SelectItem value="other">Other</SelectItem>
-                        <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                        <SelectItem value="prefer-not-to-say">
+                          Prefer not to say
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -179,7 +219,9 @@ const PatientRegistration: React.FC = () => {
                       id="phone"
                       type="tel"
                       value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("phone", e.target.value)
+                      }
                       required
                     />
                   </div>
@@ -191,7 +233,7 @@ const PatientRegistration: React.FC = () => {
                     id="email"
                     type="email"
                     value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
                   />
                 </div>
 
@@ -202,7 +244,9 @@ const PatientRegistration: React.FC = () => {
                   <Input
                     id="address"
                     value={formData.address}
-                    onChange={(e) => handleInputChange('address', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("address", e.target.value)
+                    }
                   />
                 </div>
 
@@ -212,7 +256,9 @@ const PatientRegistration: React.FC = () => {
                     <Input
                       id="city"
                       value={formData.city}
-                      onChange={(e) => handleInputChange('city', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("city", e.target.value)
+                      }
                     />
                   </div>
                   <div>
@@ -220,7 +266,9 @@ const PatientRegistration: React.FC = () => {
                     <Input
                       id="state"
                       value={formData.state}
-                      onChange={(e) => handleInputChange('state', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("state", e.target.value)
+                      }
                     />
                   </div>
                   <div>
@@ -228,7 +276,9 @@ const PatientRegistration: React.FC = () => {
                     <Input
                       id="zipCode"
                       value={formData.zipCode}
-                      onChange={(e) => handleInputChange('zipCode', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("zipCode", e.target.value)
+                      }
                     />
                   </div>
                 </div>
@@ -256,7 +306,9 @@ const PatientRegistration: React.FC = () => {
                   <Input
                     id="emergencyName"
                     value={formData.emergencyName}
-                    onChange={(e) => handleInputChange('emergencyName', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("emergencyName", e.target.value)
+                    }
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -266,12 +318,19 @@ const PatientRegistration: React.FC = () => {
                       id="emergencyPhone"
                       type="tel"
                       value={formData.emergencyPhone}
-                      onChange={(e) => handleInputChange('emergencyPhone', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("emergencyPhone", e.target.value)
+                      }
                     />
                   </div>
                   <div>
                     <Label htmlFor="emergencyRelation">Relationship</Label>
-                    <Select value={formData.emergencyRelation} onValueChange={(value) => handleInputChange('emergencyRelation', value)}>
+                    <Select
+                      value={formData.emergencyRelation}
+                      onValueChange={(value) =>
+                        handleInputChange("emergencyRelation", value)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select relationship" />
                       </SelectTrigger>
@@ -301,7 +360,9 @@ const PatientRegistration: React.FC = () => {
                   <Input
                     id="insuranceProvider"
                     value={formData.insuranceProvider}
-                    onChange={(e) => handleInputChange('insuranceProvider', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("insuranceProvider", e.target.value)
+                    }
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -310,7 +371,9 @@ const PatientRegistration: React.FC = () => {
                     <Input
                       id="policyNumber"
                       value={formData.policyNumber}
-                      onChange={(e) => handleInputChange('policyNumber', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("policyNumber", e.target.value)
+                      }
                     />
                   </div>
                   <div>
@@ -318,7 +381,9 @@ const PatientRegistration: React.FC = () => {
                     <Input
                       id="groupNumber"
                       value={formData.groupNumber}
-                      onChange={(e) => handleInputChange('groupNumber', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("groupNumber", e.target.value)
+                      }
                     />
                   </div>
                 </div>
@@ -337,7 +402,9 @@ const PatientRegistration: React.FC = () => {
                   <Textarea
                     id="allergies"
                     value={formData.allergies}
-                    onChange={(e) => handleInputChange('allergies', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("allergies", e.target.value)
+                    }
                     placeholder="List any known allergies..."
                   />
                 </div>
@@ -346,7 +413,9 @@ const PatientRegistration: React.FC = () => {
                   <Textarea
                     id="medications"
                     value={formData.medications}
-                    onChange={(e) => handleInputChange('medications', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("medications", e.target.value)
+                    }
                     placeholder="List current medications..."
                   />
                 </div>
@@ -355,14 +424,23 @@ const PatientRegistration: React.FC = () => {
                   <Textarea
                     id="medicalHistory"
                     value={formData.medicalHistory}
-                    onChange={(e) => handleInputChange('medicalHistory', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("medicalHistory", e.target.value)
+                    }
                     placeholder="Previous surgeries, chronic conditions, etc..."
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="preferredLanguage">Preferred Language</Label>
-                    <Select value={formData.preferredLanguage} onValueChange={(value) => handleInputChange('preferredLanguage', value)}>
+                    <Label htmlFor="preferredLanguage">
+                      Preferred Language
+                    </Label>
+                    <Select
+                      value={formData.preferredLanguage}
+                      onValueChange={(value) =>
+                        handleInputChange("preferredLanguage", value)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -375,8 +453,15 @@ const PatientRegistration: React.FC = () => {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="communicationMethod">Communication Method</Label>
-                    <Select value={formData.communicationMethod} onValueChange={(value) => handleInputChange('communicationMethod', value)}>
+                    <Label htmlFor="communicationMethod">
+                      Communication Method
+                    </Label>
+                    <Select
+                      value={formData.communicationMethod}
+                      onValueChange={(value) =>
+                        handleInputChange("communicationMethod", value)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -398,9 +483,7 @@ const PatientRegistration: React.FC = () => {
           <Button type="button" variant="outline">
             Cancel
           </Button>
-          <Button type="submit">
-            Register Patient
-          </Button>
+          <Button type="submit">Register Patient</Button>
         </div>
       </form>
     </div>

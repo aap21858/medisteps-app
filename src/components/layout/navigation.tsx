@@ -1,13 +1,22 @@
-import React from 'react';
-import { Calendar, Users, CreditCard, FileText, Settings, Home, Activity } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import {
+  Calendar,
+  Users,
+  CreditCard,
+  FileText,
+  Settings,
+  Home,
+  Activity,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+import { getCurrentUser } from "@/lib/authContext";
 
 interface NavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  userRole: 'admin' | 'receptionist' | 'doctor' | 'billing';
+  userRole: "admin" | "receptionist" | "doctor" | "billing";
   currentUser: {
     name: string;
     email: string;
@@ -15,26 +24,62 @@ interface NavigationProps {
   };
 }
 
-const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, userRole, currentUser }) => {
+const Navigation: React.FC<NavigationProps> = ({
+  activeTab,
+  onTabChange,
+  userRole,
+  currentUser,
+}) => {
+  const user = getCurrentUser();
   const navigationItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home, roles: ['admin', 'receptionist', 'doctor', 'billing'] },
-    { id: 'patients', label: 'Patients', icon: Users, roles: ['admin', 'receptionist', 'doctor'] },
-    { id: 'appointments', label: 'Appointments', icon: Calendar, roles: ['admin', 'receptionist', 'doctor'] },
-    { id: 'staff', label: 'Staff Management', icon: Users, roles: ['admin'] },
-    { id: 'billing', label: 'Billing', icon: CreditCard, roles: ['admin', 'billing', 'receptionist'] },
-    { id: 'reports', label: 'Reports', icon: FileText, roles: ['admin', 'billing'] },
-    { id: 'set-password', label: 'Set New Password', icon: Settings, roles: ['admin', 'receptionist', 'doctor', 'billing'] },
-    { id: 'settings', label: 'Settings', icon: Settings, roles: ['admin'] },
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: Home,
+      roles: ["admin", "receptionist", "doctor", "billing"],
+    },
+    {
+      id: "patients",
+      label: "Patients",
+      icon: Users,
+      roles: ["admin", "receptionist", "doctor"],
+    },
+    {
+      id: "appointments",
+      label: "Appointments",
+      icon: Calendar,
+      roles: ["admin", "receptionist", "doctor"],
+    },
+    { id: "staff", label: "Staff Management", icon: Users, roles: ["admin"] },
+    {
+      id: "billing",
+      label: "Billing",
+      icon: CreditCard,
+      roles: ["admin", "billing", "receptionist"],
+    },
+    {
+      id: "reports",
+      label: "Reports",
+      icon: FileText,
+      roles: ["admin", "billing"],
+    },
+    {
+      id: "set-password",
+      label: "Set New Password",
+      icon: Settings,
+      roles: ["admin", "receptionist", "doctor", "billing"],
+    },
+    { id: "settings", label: "Settings", icon: Settings, roles: ["admin"] },
   ];
   const navigate = useNavigate();
 
-  const availableItems = navigationItems.filter(item => 
+  const availableItems = navigationItems.filter((item) =>
     item.roles.includes(userRole)
   );
 
   const handleSignOut = () => {
     localStorage.removeItem("token"); // or sessionStorage if you use that
-    navigate('/login'); // redirect to login page
+    navigate("/login"); // redirect to login page
   };
 
   return (
@@ -49,7 +94,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, userRol
             <p className="text-xs text-muted-foreground">Management System</p>
           </div>
         </div>
-        
+
         <div className="space-y-2">
           {availableItems.map((item) => {
             const Icon = item.icon;
@@ -70,31 +115,30 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange, userRol
           })}
         </div>
       </div>
-      
+
       <div className="p-6 border-t border-border">
         <div className="flex items-center gap-3 p-3 bg-accent rounded-lg">
           <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-semibold text-sm">
             {currentUser.avatar}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm truncate">{currentUser.name}</p>
-            <p className="text-xs text-muted-foreground truncate">{currentUser.email}</p>
+            <p className="font-medium text-sm truncate">{user.fullName}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {user.emailId}
+            </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {userRole === 'admin' ? 'Administrator' : 
-               userRole === 'doctor' ? 'Doctor' :
-               userRole === 'receptionist' ? 'Receptionist' :
-               'Billing Specialist'}
+              {user.role === "ADMIN"
+                ? "Administrator"
+                : user.role === "DOCTOR"
+                ? "Doctor"
+                : user.role === "RECEPTIONIST"
+                ? "Receptionist"
+                : "Billing Specialist"}
             </p>
           </div>
         </div>
-        
+
         <div className="mt-4">
-          {/* <a 
-            href="/login"
-            className="block w-full text-center py-2 px-3 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
-          >
-            Sign Out
-          </a> */}
           <Button
             variant="outline"
             className="w-full text-center py-2 px-3 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"

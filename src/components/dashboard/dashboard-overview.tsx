@@ -1,49 +1,116 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Calendar, CreditCard, TrendingUp, Clock, CheckCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Users,
+  Calendar,
+  CreditCard,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface DashboardOverviewProps {
-  userRole: 'admin' | 'receptionist' | 'doctor' | 'billing';
+  userRole: "admin" | "receptionist" | "doctor" | "billing";
 }
 
 const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
-  const today = new Date().toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
   const todayAppointments = [
-    { id: 1, time: '09:00', patient: 'John Smith', type: 'Consultation', doctor: 'Dr. Johnson', status: 'scheduled' },
-    { id: 2, time: '09:30', patient: 'Sarah Wilson', type: 'Follow-up', doctor: 'Dr. Davis', status: 'in-progress' },
-    { id: 3, time: '10:00', patient: 'Mike Brown', type: 'Check-up', doctor: 'Dr. Johnson', status: 'completed' },
-    { id: 4, time: '10:30', patient: 'Lisa Garcia', type: 'Consultation', doctor: 'Dr. Lee', status: 'scheduled' },
+    {
+      id: 1,
+      time: "09:00",
+      patient: "John Smith",
+      type: "Consultation",
+      doctor: "Dr. Johnson",
+      status: "scheduled",
+    },
+    {
+      id: 2,
+      time: "09:30",
+      patient: "Sarah Wilson",
+      type: "Follow-up",
+      doctor: "Dr. Davis",
+      status: "in-progress",
+    },
+    {
+      id: 3,
+      time: "10:00",
+      patient: "Mike Brown",
+      type: "Check-up",
+      doctor: "Dr. Johnson",
+      status: "completed",
+    },
+    {
+      id: 4,
+      time: "10:30",
+      patient: "Lisa Garcia",
+      type: "Consultation",
+      doctor: "Dr. Lee",
+      status: "scheduled",
+    },
   ];
 
   const stats = [
-    { title: 'Total Patients', value: '1,247', icon: Users, change: '+12%', color: 'text-primary' },
-    { title: "Today's Appointments", value: '24', icon: Calendar, change: '+8%', color: 'text-success' },
-    { title: 'Monthly Revenue', value: '$45,230', icon: CreditCard, change: '+15%', color: 'text-warning' },
-    { title: 'Avg. Wait Time', value: '12 min', icon: Clock, change: '-5%', color: 'text-muted-foreground' },
+    {
+      title: "Total Patients",
+      value: "1,247",
+      icon: Users,
+      change: "+12%",
+      color: "text-primary",
+    },
+    {
+      title: "Today's Appointments",
+      value: "24",
+      icon: Calendar,
+      change: "+8%",
+      color: "text-success",
+    },
+    {
+      title: "Monthly Revenue",
+      value: "$45,230",
+      icon: CreditCard,
+      change: "+15%",
+      color: "text-warning",
+    },
+    {
+      title: "Avg. Wait Time",
+      value: "12 min",
+      icon: Clock,
+      change: "-5%",
+      color: "text-muted-foreground",
+    },
   ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'scheduled': return 'text-primary';
-      case 'in-progress': return 'text-warning';
-      case 'completed': return 'text-success';
-      default: return 'text-muted-foreground';
+      case "scheduled":
+        return "text-primary";
+      case "in-progress":
+        return "text-warning";
+      case "completed":
+        return "text-success";
+      default:
+        return "text-muted-foreground";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'scheduled': return Clock;
-      case 'in-progress': return TrendingUp;
-      case 'completed': return CheckCircle;
-      default: return Clock;
+      case "scheduled":
+        return Clock;
+      case "in-progress":
+        return TrendingUp;
+      case "completed":
+        return CheckCircle;
+      default:
+        return Clock;
     }
   };
 
@@ -54,10 +121,13 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
         <h1 className="text-2xl font-bold mb-2">Welcome back!</h1>
         <p className="opacity-90">{today}</p>
         <p className="text-sm opacity-80 mt-1">
-          {userRole === 'admin' ? 'System Administrator' : 
-           userRole === 'doctor' ? 'Medical Professional' :
-           userRole === 'receptionist' ? 'Front Desk Staff' :
-           'Billing Specialist'}
+          {userRole === "admin"
+            ? "System Administrator"
+            : userRole === "doctor"
+            ? "Medical Professional"
+            : userRole === "receptionist"
+            ? "Front Desk Staff"
+            : "Billing Specialist"}
         </p>
       </div>
 
@@ -70,9 +140,13 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {stat.title}
+                    </p>
                     <p className="text-2xl font-bold mt-1">{stat.value}</p>
-                    <p className={`text-sm mt-1 ${stat.color}`}>{stat.change} from last month</p>
+                    <p className={`text-sm mt-1 ${stat.color}`}>
+                      {stat.change} from last month
+                    </p>
                   </div>
                   <div className="p-3 bg-primary/10 rounded-full">
                     <Icon className="h-6 w-6 text-primary" />
@@ -98,19 +172,32 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
               {todayAppointments.map((appointment) => {
                 const StatusIcon = getStatusIcon(appointment.status);
                 return (
-                  <div key={appointment.id} className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg">
+                  <div
+                    key={appointment.id}
+                    className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg"
+                  >
                     <div className="flex items-center gap-4">
                       <div className="text-center">
-                        <p className="text-sm font-medium">{appointment.time}</p>
+                        <p className="text-sm font-medium">
+                          {appointment.time}
+                        </p>
                       </div>
                       <div>
                         <p className="font-medium">{appointment.patient}</p>
-                        <p className="text-sm text-muted-foreground">{appointment.type} • {appointment.doctor}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {appointment.type} • {appointment.doctor}
+                        </p>
                       </div>
                     </div>
-                    <div className={`flex items-center gap-2 ${getStatusColor(appointment.status)}`}>
+                    <div
+                      className={`flex items-center gap-2 ${getStatusColor(
+                        appointment.status
+                      )}`}
+                    >
                       <StatusIcon className="h-4 w-4" />
-                      <span className="text-sm capitalize">{appointment.status}</span>
+                      <span className="text-sm capitalize">
+                        {appointment.status}
+                      </span>
                     </div>
                   </div>
                 );
@@ -128,7 +215,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {(userRole === 'admin' || userRole === 'receptionist') && (
+            {(userRole === "admin" || userRole === "receptionist") && (
               <>
                 <Button className="w-full justify-start" variant="outline">
                   <Users className="h-4 w-4 mr-2" />
@@ -140,13 +227,13 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
                 </Button>
               </>
             )}
-            {(userRole === 'admin' || userRole === 'billing') && (
+            {(userRole === "admin" || userRole === "billing") && (
               <Button className="w-full justify-start" variant="outline">
                 <CreditCard className="h-4 w-4 mr-2" />
                 Create Invoice
               </Button>
             )}
-            {userRole === 'doctor' && (
+            {userRole === "doctor" && (
               <>
                 <Button className="w-full justify-start" variant="outline">
                   <Users className="h-4 w-4 mr-2" />

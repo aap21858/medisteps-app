@@ -24,9 +24,10 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route element={<PrivateRoute />}>
              <Route path="/" element={<Index />} />
-             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
              <Route path="*" element={<NotFound />} />
             </Route>          
+            {/* <Route path="/" element={<Index />} />
+             <Route path="*" element={<NotFound />} /> */}
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
