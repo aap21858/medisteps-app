@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +29,7 @@ import { Edit, Trash2, UserPlus, Users, UserCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useAuthorizedApi from "@/hooks/useAuthorizedApi";
 import { Staff } from "@/model/Staff";
+import { request } from "http";
 
 const StaffManagement = () => {
   const { toast } = useToast();
@@ -75,6 +76,17 @@ const StaffManagement = () => {
     role: "",
     contactNumber: "",
   });
+
+  useEffect(() => {
+    const fetchStaffList = async () => {
+      const staffList = await request({ method: "get", url: "/api/staff/get-all-details" });
+      console.log("Fetched staff list:", staffList);
+      if (staffList) {
+        setStaffMembers(staffList.data);
+      }
+    };
+    fetchStaffList();
+  }, []);
 
   const handleAddStaff = async (e: React.FormEvent) => {
     e.preventDefault();
