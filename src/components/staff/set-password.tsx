@@ -88,7 +88,7 @@ export const SetPassword = () => {
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">Set New Password</CardTitle>
           <CardDescription className="text-center">
-            Enter your username and new password details
+            Enter new password
           </CardDescription>
         </CardHeader>
         <CardContent>
