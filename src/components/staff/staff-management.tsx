@@ -25,6 +25,24 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Edit, Trash2, UserPlus, Users, UserCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useAuthorizedApi from "@/hooks/useAuthorizedApi";
@@ -69,7 +87,16 @@ const StaffManagement = () => {
   ]);
 
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [newStaff, setNewStaff] = useState<Staff>({
+    fullName: "",
+    emailId: "",
+    role: "",
+    contactNumber: "",
+  });
+  const [editStaff, setEditStaff] = useState<Staff>({
     fullName: "",
     emailId: "",
     role: "",
@@ -117,7 +144,7 @@ const StaffManagement = () => {
         toast({
           title: "Success",
           description: res.data,
-          variant: "default",
+          className: "bg-green-50 text-green-900 border-green-200",
         });
       }, 1500);
     } else if (res.error) {
@@ -129,6 +156,91 @@ const StaffManagement = () => {
     }
 
     setShowAddForm(false);
+  };
+
+  const handleEditStaff = (staff: Staff) => {
+    setSelectedStaff(staff);
+    setEditStaff({
+      fullName: staff.fullName,
+      emailId: staff.emailId,
+      role: staff.role,
+      contactNumber: staff.contactNumber,
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleUpdateStaff = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (
+      !editStaff.fullName ||
+      !editStaff.emailId ||
+      !editStaff.role ||
+      !editStaff.contactNumber
+    ) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const res = await request({
+      method: "put",
+      url: `/api/staff/update/${selectedStaff?.id}`,
+      data: editStaff,
+    });
+
+    if (res.data) {
+      setStaffMembers(prev => 
+        prev.map(staff => 
+          staff.id === selectedStaff?.id ? { ...staff, ...editStaff } : staff
+        )
+      );
+      toast({
+        title: "Success",
+        description: "Staff member updated successfully",
+        className: "bg-green-50 text-green-900 border-green-200",
+      });
+      setShowEditDialog(false);
+    } else if (res.error) {
+      toast({
+        title: "Error",
+        description: res.error,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteStaff = (staff: Staff) => {
+    setSelectedStaff(staff);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDeleteStaff = async () => {
+    if (!selectedStaff?.id) return;
+
+    const res = await request({
+      method: "delete",
+      url: `/api/staff/delete/${selectedStaff.id}`,
+    });
+
+    if (res.data) {
+      setStaffMembers(prev => prev.filter(staff => staff.id !== selectedStaff.id));
+      toast({
+        title: "Success",
+        description: "Staff member deleted successfully",
+        className: "bg-green-50 text-green-900 border-green-200",
+      });
+      setShowDeleteDialog(false);
+    } else if (res.error) {
+      toast({
+        title: "Error",
+        description: res.error,
+        variant: "destructive",
+      });
+    }
   };
 
   const getRoleBadgeColor = (role: string) => {
@@ -295,10 +407,18 @@ const StaffManagement = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button size="sm" variant="outline">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleEditStaff(staff)}
+                            >
                               <Edit className="h-3 w-3" />
                             </Button>
-                            <Button size="sm" variant="outline">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleDeleteStaff(staff)}
+                            >
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
@@ -371,6 +491,97 @@ const StaffManagement = () => {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
+
+      {/* Edit Staff Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Staff Member</DialogTitle>
+            <DialogDescription>
+              Make changes to the staff member's information here.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleUpdateStaff} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Full Name</Label>
+              <Input
+                id="edit-name"
+                value={editStaff.fullName}
+                onChange={(e) =>
+                  setEditStaff({ ...editStaff, fullName: e.target.value })
+                }
+                placeholder="Enter full name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-email">Email</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                value={editStaff.emailId}
+                onChange={(e) =>
+                  setEditStaff({ ...editStaff, emailId: e.target.value })
+                }
+                placeholder="Enter email address"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-role">Role</Label>
+              <Select
+                value={editStaff.role}
+                onValueChange={(value) =>
+                  setEditStaff({ ...editStaff, role: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ADMIN">Administrator</SelectItem>
+                  <SelectItem value="DOCTOR">Doctor</SelectItem>
+                  <SelectItem value="RECEPTIONIST">Receptionist</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-contact">Contact Number</Label>
+              <Input
+                id="edit-contact"
+                value={editStaff.contactNumber}
+                onChange={(e) =>
+                  setEditStaff({
+                    ...editStaff,
+                    contactNumber: e.target.value,
+                  })
+                }
+                placeholder="Enter contact number"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit">Update Staff Member</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Staff Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete{" "}
+              <strong>{selectedStaff?.fullName}</strong> from the system.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteStaff}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

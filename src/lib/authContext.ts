@@ -1,5 +1,5 @@
 // src/utils/auth.ts
-import { Staff } from "@/components/staff/model/Staff";
+import { Staff } from "@/model/Staff";
 import { jwtDecode } from "jwt-decode";
 
 
