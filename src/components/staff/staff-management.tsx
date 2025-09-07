@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
-  Accordion, 
+  Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
@@ -29,7 +29,6 @@ import { Edit, Trash2, UserPlus, Users, UserCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useAuthorizedApi from "@/hooks/useAuthorizedApi";
 import { Staff } from "@/model/Staff";
-import { request } from "http";
 
 const StaffManagement = () => {
   const { toast } = useToast();
@@ -79,7 +78,10 @@ const StaffManagement = () => {
 
   useEffect(() => {
     const fetchStaffList = async () => {
-      const staffList = await request({ method: "get", url: "/api/staff/get-all-details" });
+      const staffList = await request({
+        method: "get",
+        url: "/api/staff/get-all-details",
+      });
       console.log("Fetched staff list:", staffList);
       if (staffList) {
         setStaffMembers(staffList.data);
@@ -105,23 +107,18 @@ const StaffManagement = () => {
       return;
     }
 
-    const staffMember: Staff = {
-      id: "",
-      ...newStaff,
-      role: newStaff.role as "ADMIN" | "RECEPTIONIST" | "DOCTOR",
-      status: "PENDING",
-      fullName: "",
-      contactNumber: "",
-    };
-
-    const res = await request({ method: "post", url: "/api/admin/register", data: newStaff });
+    const res = await request({
+      method: "post",
+      url: "/api/admin/register",
+      data: newStaff,
+    });
     if (res.data) {
       setTimeout(() => {
         toast({
           title: "Success",
           description: res.data,
           variant: "default",
-        }); 
+        });
       }, 1500);
     } else if (res.error) {
       toast({
