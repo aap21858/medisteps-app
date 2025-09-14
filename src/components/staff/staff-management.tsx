@@ -51,40 +51,8 @@ import { Staff } from "@/model/Staff";
 const StaffManagement = () => {
   const { toast } = useToast();
   const { request } = useAuthorizedApi<any>();
-  const [staffMembers, setStaffMembers] = useState<Staff[]>([
-    {
-      id: "1",
-      fullName: "Dr. Sarah Wilson",
-      emailId: "sarah.wilson@medclinic.com",
-      role: "ADMIN",
-      contactNumber: "+1 (555) 123-4567",
-      status: "ACTIVE",
-    },
-    {
-      id: "2",
-      fullName: "Emily Johnson",
-      emailId: "emily.johnson@medclinic.com",
-      role: "RECEPTIONIST",
-      contactNumber: "+1 (555) 234-5678",
-      status: "ACTIVE",
-    },
-    {
-      id: "3",
-      fullName: "Dr. Michael Chen",
-      emailId: "michael.chen@medclinic.com",
-      role: "DOCTOR",
-      contactNumber: "+1 (555) 345-6789",
-      status: "ACTIVE",
-    },
-    {
-      id: "4",
-      fullName: "Robert Martinez",
-      emailId: "robert.martinez@medclinic.com",
-      role: "RECEPTIONIST",
-      contactNumber: "+1 (555) 456-7890",
-      status: "ACTIVE",
-    },
-  ]);
+  const [staffMembers, setStaffMembers] = useState<Staff[]>();
+  const [fetchStaff, setFetchStaff] = useState(false);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -103,19 +71,19 @@ const StaffManagement = () => {
     contactNumber: "",
   });
 
+  const fetchStaffList = async () => {
+    const staffList = await request({
+      method: "get",
+      url: "/api/staff/",
+    });
+    if (staffList) {
+      setStaffMembers(staffList.data);
+    }
+  };
+
   useEffect(() => {
-    const fetchStaffList = async () => {
-      const staffList = await request({
-        method: "get",
-        url: "/api/staff/get-all-details",
-      });
-      console.log("Fetched staff list:", staffList);
-      if (staffList) {
-        setStaffMembers(staffList.data);
-      }
-    };
     fetchStaffList();
-  }, []);
+  }, [fetchStaff]);
 
   const handleAddStaff = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,6 +108,7 @@ const StaffManagement = () => {
       data: newStaff,
     });
     if (res.data) {
+      setFetchStaff(!fetchStaff);
       setTimeout(() => {
         toast({
           title: "Success",
@@ -188,19 +157,19 @@ const StaffManagement = () => {
 
     const res = await request({
       method: "put",
-      url: `/api/staff/update/${selectedStaff?.id}`,
+      url: `/api/staff/${selectedStaff?.id}`,
       data: editStaff,
     });
-
+    console.log('res', res);
     if (res.data) {
-      setStaffMembers(prev => 
-        prev.map(staff => 
+      setStaffMembers((prev) =>
+        prev.map((staff) =>
           staff.id === selectedStaff?.id ? { ...staff, ...editStaff } : staff
         )
       );
       toast({
         title: "Success",
-        description: "Staff member updated successfully",
+        description: res.data,
         className: "bg-green-50 text-green-900 border-green-200",
       });
       setShowEditDialog(false);
@@ -223,17 +192,20 @@ const StaffManagement = () => {
 
     const res = await request({
       method: "delete",
-      url: `/api/staff/delete/${selectedStaff.id}`,
+      url: `/api/staff/${selectedStaff.id}`,
     });
 
     if (res.data) {
-      setStaffMembers(prev => prev.filter(staff => staff.id !== selectedStaff.id));
+      setStaffMembers((prev) =>
+        prev.filter((staff) => staff.id !== selectedStaff.id)
+      );
       toast({
         title: "Success",
         description: "Staff member deleted successfully",
         className: "bg-green-50 text-green-900 border-green-200",
       });
       setShowDeleteDialog(false);
+      setFetchStaff(!fetchStaff);
     } else if (res.error) {
       toast({
         title: "Error",
@@ -364,7 +336,7 @@ const StaffManagement = () => {
           <AccordionTrigger className="text-lg font-semibold">
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Current Staff Members ({staffMembers.length})
+              Current Staff Members ({staffMembers ? staffMembers.length : 0})
             </div>
           </AccordionTrigger>
           <AccordionContent>
@@ -382,49 +354,50 @@ const StaffManagement = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {staffMembers.map((staff) => (
-                      <TableRow key={staff.id}>
-                        <TableCell className="font-medium">
-                          {staff.fullName}
-                        </TableCell>
-                        <TableCell>{staff.emailId}</TableCell>
-                        <TableCell>
-                          <Badge className={getRoleBadgeColor(staff.role)}>
-                            {staff.role}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{staff.contactNumber}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              staff.status === "ACTIVE"
-                                ? "default"
-                                : "secondary"
-                            }
-                          >
-                            {staff.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => handleEditStaff(staff)}
+                    {staffMembers &&
+                      staffMembers.map((staff) => (
+                        <TableRow key={staff.id}>
+                          <TableCell className="font-medium">
+                            {staff.fullName}
+                          </TableCell>
+                          <TableCell>{staff.emailId}</TableCell>
+                          <TableCell>
+                            <Badge className={getRoleBadgeColor(staff.role)}>
+                              {staff.role}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{staff.contactNumber}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                staff.status === "ACTIVE"
+                                  ? "default"
+                                  : "secondary"
+                              }
                             >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => handleDeleteStaff(staff)}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                              {staff.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEditStaff(staff)}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDeleteStaff(staff)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                   </TableBody>
                 </Table>
               </CardContent>
