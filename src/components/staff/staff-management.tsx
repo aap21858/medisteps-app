@@ -47,6 +47,7 @@ import { Edit, Trash2, UserPlus, Users, UserCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useAuthorizedApi from "@/hooks/useAuthorizedApi";
 import { Staff } from "@/model/Staff";
+import { ALL_ROLES, Role, RoleEnum } from "@/model/Role";
 
 const StaffManagement = () => {
   const { toast } = useToast();
@@ -61,13 +62,13 @@ const StaffManagement = () => {
   const [newStaff, setNewStaff] = useState<Staff>({
     fullName: "",
     emailId: "",
-    role: "",
+    roles: [],
     contactNumber: "",
   });
   const [editStaff, setEditStaff] = useState<Staff>({
     fullName: "",
     emailId: "",
-    role: "",
+    roles: [],
     contactNumber: "",
   });
 
@@ -91,7 +92,7 @@ const StaffManagement = () => {
     if (
       !newStaff.fullName ||
       !newStaff.emailId ||
-      !newStaff.role ||
+      !newStaff.roles ||
       !newStaff.contactNumber
     ) {
       toast({
@@ -132,7 +133,7 @@ const StaffManagement = () => {
     setEditStaff({
       fullName: staff.fullName,
       emailId: staff.emailId,
-      role: staff.role,
+      roles: staff.roles,
       contactNumber: staff.contactNumber,
     });
     setShowEditDialog(true);
@@ -144,7 +145,7 @@ const StaffManagement = () => {
     if (
       !editStaff.fullName ||
       !editStaff.emailId ||
-      !editStaff.role ||
+      !editStaff.roles ||
       !editStaff.contactNumber
     ) {
       toast({
@@ -160,7 +161,7 @@ const StaffManagement = () => {
       url: `/api/staff/${selectedStaff?.id}`,
       data: editStaff,
     });
-    console.log('res', res);
+    console.log("res", res);
     if (res.data) {
       setStaffMembers((prev) =>
         prev.map((staff) =>
@@ -228,6 +229,9 @@ const StaffManagement = () => {
     }
   };
 
+  const toggleRoleInArray = (arr: Role[], value: Role) =>
+    arr.includes(value) ? arr.filter((r) => r !== value) : [...arr, value];
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -279,7 +283,7 @@ const StaffManagement = () => {
                       <Label htmlFor="role">Role</Label>
                       <Select
                         onValueChange={(value) =>
-                          setNewStaff({ ...newStaff, role: value })
+                          setNewStaff({ ...newStaff, roles: [value] })
                         }
                       >
                         <SelectTrigger>
@@ -318,7 +322,7 @@ const StaffManagement = () => {
                         setNewStaff({
                           fullName: "",
                           emailId: "",
-                          role: "",
+                          roles: [""],
                           contactNumber: "",
                         })
                       }
@@ -362,9 +366,14 @@ const StaffManagement = () => {
                           </TableCell>
                           <TableCell>{staff.emailId}</TableCell>
                           <TableCell>
-                            <Badge className={getRoleBadgeColor(staff.role)}>
-                              {staff.role}
-                            </Badge>
+                            {staff.roles.map((role) => (
+                              <Badge
+                                key={role}
+                                className={getRoleBadgeColor(role)}
+                              >
+                                {role}
+                              </Badge>
+                            ))}
                           </TableCell>
                           <TableCell>{staff.contactNumber}</TableCell>
                           <TableCell>
@@ -501,9 +510,9 @@ const StaffManagement = () => {
             <div className="space-y-2">
               <Label htmlFor="edit-role">Role</Label>
               <Select
-                value={editStaff.role}
+                value={editStaff.roles[0]}
                 onValueChange={(value) =>
-                  setEditStaff({ ...editStaff, role: value })
+                  setEditStaff({ ...editStaff, roles: [value] })
                 }
               >
                 <SelectTrigger>

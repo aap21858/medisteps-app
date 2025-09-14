@@ -9,9 +9,10 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Role } from "@/model/Role";
 
 interface DashboardOverviewProps {
-  userRole: "admin" | "receptionist" | "doctor" | "billing";
+  userRole: Role[];
 }
 
 const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
@@ -121,11 +122,11 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
         <h1 className="text-2xl font-bold mb-2">Welcome back!</h1>
         <p className="opacity-90">{today}</p>
         <p className="text-sm opacity-80 mt-1">
-          {userRole === "admin"
+          {userRole.includes("ADMIN")
             ? "System Administrator"
-            : userRole === "doctor"
+            : userRole.includes("DOCTOR")
             ? "Medical Professional"
-            : userRole === "receptionist"
+            : userRole.includes("RECEPTIONIST")
             ? "Front Desk Staff"
             : "Billing Specialist"}
         </p>
@@ -215,7 +216,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {(userRole === "admin" || userRole === "receptionist") && (
+            {(userRole.includes("ADMIN") || userRole.includes("RECEPTIONIST")) && (
               <>
                 <Button className="w-full justify-start" variant="outline">
                   <Users className="h-4 w-4 mr-2" />
@@ -227,13 +228,13 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ userRole }) => {
                 </Button>
               </>
             )}
-            {(userRole === "admin" || userRole === "billing") && (
+            {(userRole.includes("ADMIN") || userRole.includes("BILLING")) && (
               <Button className="w-full justify-start" variant="outline">
                 <CreditCard className="h-4 w-4 mr-2" />
                 Create Invoice
               </Button>
             )}
-            {userRole === "doctor" && (
+            {userRole.includes("DOCTOR") && (
               <>
                 <Button className="w-full justify-start" variant="outline">
                   <Users className="h-4 w-4 mr-2" />

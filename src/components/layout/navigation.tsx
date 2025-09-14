@@ -12,23 +12,18 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { getCurrentUser } from "@/lib/authContext";
+import { Role } from "@/model/Role";
 
 interface NavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  userRole: "admin" | "receptionist" | "doctor" | "billing";
-  currentUser: {
-    name: string;
-    email: string;
-    avatar: string;
-  };
+  userRole: Role[];
 }
 
 const Navigation: React.FC<NavigationProps> = ({
   activeTab,
   onTabChange,
   userRole,
-  currentUser,
 }) => {
   const user = getCurrentUser();
   const navigationItems = [
@@ -36,45 +31,40 @@ const Navigation: React.FC<NavigationProps> = ({
       id: "dashboard",
       label: "Dashboard",
       icon: Home,
-      roles: ["admin", "receptionist", "doctor", "billing"],
+      roles: ["ADMIN", "RECEPTIONIST", "DOCTOR", "BILLING"],
     },
     {
       id: "patients",
       label: "Patients",
       icon: Users,
-      roles: ["admin", "receptionist", "doctor"],
+      roles: ["RECEPTIONIST", "DOCTOR"],
     },
     {
       id: "appointments",
       label: "Appointments",
       icon: Calendar,
-      roles: ["admin", "receptionist", "doctor"],
+      roles: ["RECEPTIONIST", "DOCTOR"],
     },
-    { id: "staff", label: "Staff Management", icon: Users, roles: ["admin"] },
+    { id: "staff", label: "Staff Management", icon: Users, roles: ["ADMIN"] },
     {
       id: "billing",
       label: "Billing",
       icon: CreditCard,
-      roles: ["admin", "billing", "receptionist"],
+      roles: ["RECEPTIONIST"],
     },
     {
       id: "reports",
       label: "Reports",
       icon: FileText,
-      roles: ["admin", "billing"],
+      roles: ["ADMIN", "RECEPTIONIST"],
     },
-    {
-      id: "set-password",
-      label: "Set New Password",
-      icon: Settings,
-      roles: ["admin", "receptionist", "doctor", "billing"],
-    },
-    { id: "settings", label: "Settings", icon: Settings, roles: ["admin"] },
+
+    { id: "settings", label: "Settings", icon: Settings, roles: ["ADMIN"] },
   ];
   const navigate = useNavigate();
 
   const availableItems = navigationItems.filter((item) =>
-    item.roles.includes(userRole)
+    item.roles.some((role) => userRole.includes(role as Role))
   );
 
   const handleSignOut = () => {
@@ -119,7 +109,7 @@ const Navigation: React.FC<NavigationProps> = ({
       <div className="p-6 border-t border-border">
         <div className="flex items-center gap-3 p-3 bg-accent rounded-lg">
           <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-semibold text-sm">
-            {currentUser.avatar}
+            {getNameInitials()}
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-medium text-sm truncate">{user.fullName}</p>
@@ -127,11 +117,11 @@ const Navigation: React.FC<NavigationProps> = ({
               {user.emailId}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {user.role === "ADMIN"
+              {user.roles.includes("ADMIN")
                 ? "Administrator"
-                : user.role === "DOCTOR"
+                : user.roles.includes("DOCTOR")
                 ? "Doctor"
-                : user.role === "RECEPTIONIST"
+                : user.roles.includes("RECEPTIONIST")
                 ? "Receptionist"
                 : "Billing Specialist"}
             </p>
@@ -150,6 +140,11 @@ const Navigation: React.FC<NavigationProps> = ({
       </div>
     </nav>
   );
+
+  function getNameInitials(): React.ReactNode {
+    const fullName = user.fullName;
+    return fullName.charAt(0).toUpperCase() + fullName.charAt(fullName.indexOf(" ") + 1).toUpperCase();
+  }
 };
 
 export default Navigation;
