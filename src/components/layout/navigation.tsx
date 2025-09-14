@@ -127,11 +127,11 @@ const Navigation: React.FC<NavigationProps> = ({
               {user.emailId}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {user.role === "ADMIN"
+              {user.role?.includes("ADMIN")
                 ? "Administrator"
-                : user.role === "DOCTOR"
+                : user.role?.includes("DOCTOR")
                 ? "Doctor"
-                : user.role === "RECEPTIONIST"
+                : user.role?.includes("RECEPTIONIST")
                 ? "Receptionist"
                 : "Billing Specialist"}
             </p>

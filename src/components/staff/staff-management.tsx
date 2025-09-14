@@ -61,13 +61,13 @@ const StaffManagement = () => {
   const [newStaff, setNewStaff] = useState<Staff>({
     fullName: "",
     emailId: "",
-    role: "",
+    role: [],
     contactNumber: "",
   });
   const [editStaff, setEditStaff] = useState<Staff>({
     fullName: "",
     emailId: "",
-    role: "",
+    role: [],
     contactNumber: "",
   });
 
@@ -91,7 +91,7 @@ const StaffManagement = () => {
     if (
       !newStaff.fullName ||
       !newStaff.emailId ||
-      !newStaff.role ||
+      !newStaff.role.length ||
       !newStaff.contactNumber
     ) {
       toast({
@@ -144,7 +144,7 @@ const StaffManagement = () => {
     if (
       !editStaff.fullName ||
       !editStaff.emailId ||
-      !editStaff.role ||
+      !editStaff.role.length ||
       !editStaff.contactNumber
     ) {
       toast({
@@ -228,6 +228,22 @@ const StaffManagement = () => {
     }
   };
 
+  const handleRoleChange = (value: string, isNew: boolean = false) => {
+    if (isNew) {
+      const currentRoles = newStaff.role;
+      const updatedRoles = currentRoles.includes(value)
+        ? currentRoles.filter(r => r !== value)
+        : [...currentRoles, value];
+      setNewStaff({ ...newStaff, role: updatedRoles });
+    } else {
+      const currentRoles = editStaff.role;
+      const updatedRoles = currentRoles.includes(value)
+        ? currentRoles.filter(r => r !== value)
+        : [...currentRoles, value];
+      setEditStaff({ ...editStaff, role: updatedRoles });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -276,23 +292,23 @@ const StaffManagement = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="role">Role</Label>
-                      <Select
-                        onValueChange={(value) =>
-                          setNewStaff({ ...newStaff, role: value })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Admin">Administrator</SelectItem>
-                          <SelectItem value="Doctor">Doctor</SelectItem>
-                          <SelectItem value="Receptionist">
-                            Receptionist
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Label htmlFor="role">Roles</Label>
+                      <div className="space-y-2">
+                        {["ADMIN", "DOCTOR", "RECEPTIONIST"].map((role) => (
+                          <div key={role} className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id={`new-${role}`}
+                              checked={newStaff.role.includes(role)}
+                              onChange={() => handleRoleChange(role, true)}
+                              className="rounded border-gray-300"
+                            />
+                            <Label htmlFor={`new-${role}`} className="text-sm">
+                              {role === "ADMIN" ? "Administrator" : role === "DOCTOR" ? "Doctor" : "Receptionist"}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="contact">Contact Number</Label>
@@ -318,7 +334,7 @@ const StaffManagement = () => {
                         setNewStaff({
                           fullName: "",
                           emailId: "",
-                          role: "",
+                          role: [],
                           contactNumber: "",
                         })
                       }
@@ -362,9 +378,13 @@ const StaffManagement = () => {
                           </TableCell>
                           <TableCell>{staff.emailId}</TableCell>
                           <TableCell>
-                            <Badge className={getRoleBadgeColor(staff.role)}>
-                              {staff.role}
-                            </Badge>
+                            <div className="flex gap-1 flex-wrap">
+                              {staff.role.map((role) => (
+                                <Badge key={role} className={getRoleBadgeColor(role)}>
+                                  {role}
+                                </Badge>
+                              ))}
+                            </div>
                           </TableCell>
                           <TableCell>{staff.contactNumber}</TableCell>
                           <TableCell>
@@ -499,22 +519,23 @@ const StaffManagement = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-role">Role</Label>
-              <Select
-                value={editStaff.role}
-                onValueChange={(value) =>
-                  setEditStaff({ ...editStaff, role: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ADMIN">Administrator</SelectItem>
-                  <SelectItem value="DOCTOR">Doctor</SelectItem>
-                  <SelectItem value="RECEPTIONIST">Receptionist</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="edit-role">Roles</Label>
+              <div className="space-y-2">
+                {["ADMIN", "DOCTOR", "RECEPTIONIST"].map((role) => (
+                  <div key={role} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={`edit-${role}`}
+                      checked={editStaff.role.includes(role)}
+                      onChange={() => handleRoleChange(role, false)}
+                      className="rounded border-gray-300"
+                    />
+                    <Label htmlFor={`edit-${role}`} className="text-sm">
+                      {role === "ADMIN" ? "Administrator" : role === "DOCTOR" ? "Doctor" : "Receptionist"}
+                    </Label>
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-contact">Contact Number</Label>
