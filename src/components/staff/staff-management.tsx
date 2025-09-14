@@ -3,13 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { MultiRoleSelect } from "@/components/ui/multi-role-select";
 import {
   Table,
   TableBody,
@@ -280,23 +274,14 @@ const StaffManagement = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="role">Role</Label>
-                      <Select
-                        onValueChange={(value) =>
-                          setNewStaff({ ...newStaff, roles: [value] })
+                      <Label htmlFor="role">Roles</Label>
+                      <MultiRoleSelect
+                        selectedRoles={newStaff.roles}
+                        onRolesChange={(roles) =>
+                          setNewStaff({ ...newStaff, roles })
                         }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Admin">Administrator</SelectItem>
-                          <SelectItem value="Doctor">Doctor</SelectItem>
-                          <SelectItem value="Receptionist">
-                            Receptionist
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                        placeholder="Select roles"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="contact">Contact Number</Label>
@@ -322,7 +307,7 @@ const StaffManagement = () => {
                         setNewStaff({
                           fullName: "",
                           emailId: "",
-                          roles: [""],
+                          roles: [],
                           contactNumber: "",
                         })
                       }
@@ -508,22 +493,14 @@ const StaffManagement = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-role">Role</Label>
-              <Select
-                value={editStaff.roles[0]}
-                onValueChange={(value) =>
-                  setEditStaff({ ...editStaff, roles: [value] })
+              <Label htmlFor="edit-role">Roles</Label>
+              <MultiRoleSelect
+                selectedRoles={editStaff.roles}
+                onRolesChange={(roles) =>
+                  setEditStaff({ ...editStaff, roles })
                 }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ADMIN">Administrator</SelectItem>
-                  <SelectItem value="DOCTOR">Doctor</SelectItem>
-                  <SelectItem value="RECEPTIONIST">Receptionist</SelectItem>
-                </SelectContent>
-              </Select>
+                placeholder="Select roles"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-contact">Contact Number</Label>
