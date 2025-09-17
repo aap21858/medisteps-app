@@ -41,7 +41,8 @@ import { Edit, Trash2, UserPlus, Users, UserCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useAuthorizedApi from "@/hooks/useAuthorizedApi";
 import { Staff } from "@/model/Staff";
-import { ALL_ROLES, Role, RoleEnum } from "@/model/Role";
+import { Role } from "@/model/Role";
+import { getCurrentUser } from "@/lib/authContext";
 
 const StaffManagement = () => {
   const { toast } = useToast();
@@ -378,6 +379,7 @@ const StaffManagement = () => {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleEditStaff(staff)}
+                                disabled={staff.emailId === getCurrentUser().emailId}
                               >
                                 <Edit className="h-3 w-3" />
                               </Button>
@@ -385,6 +387,7 @@ const StaffManagement = () => {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => handleDeleteStaff(staff)}
+                                disabled={staff.emailId === getCurrentUser().emailId}
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
@@ -496,9 +499,7 @@ const StaffManagement = () => {
               <Label htmlFor="edit-role">Roles</Label>
               <MultiRoleSelect
                 selectedRoles={editStaff.roles}
-                onRolesChange={(roles) =>
-                  setEditStaff({ ...editStaff, roles })
-                }
+                onRolesChange={(roles) => setEditStaff({ ...editStaff, roles })}
                 placeholder="Select roles"
               />
             </div>
