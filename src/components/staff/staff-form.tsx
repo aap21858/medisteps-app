@@ -60,6 +60,7 @@ export const StaffForm = ({ onStaffAdded }: StaffFormProps) => {
           className: "bg-green-50 text-green-900 border-green-200",
         });
       }, 1500);
+      clearForm();
     } else if (res.error) {
       toast({
         title: "Error",
@@ -67,13 +68,6 @@ export const StaffForm = ({ onStaffAdded }: StaffFormProps) => {
         variant: "destructive",
       });
     }
-
-    setNewStaff({
-      fullName: "",
-      emailId: "",
-      roles: [],
-      contactNumber: "",
-    });
   };
 
   const clearForm = () => {
