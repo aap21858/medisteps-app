@@ -72,7 +72,7 @@ export const StaffTable = ({ staffMembers, onEditStaff, onDeleteStaff }: StaffTa
         role.toLowerCase().includes(filters.role.toLowerCase())
       );
       const matchesPhone = staff.contactNumber.includes(filters.phone);
-      const matchesStatus = staff.status?.toLowerCase().includes(filters.status.toLowerCase()) ?? true;
+      const matchesStatus = staff.status?.toLowerCase().includes(filters.status.toLowerCase());
       const matchesActiveFilter = showActiveOnly ? staff.status === "ACTIVE" : true;
 
       return matchesName && matchesEmail && matchesRole && matchesPhone && matchesStatus && matchesActiveFilter;
