@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,8 +13,10 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import PhotoUpload from "@/components/ui/photo-upload";
-import { User, Heart, Shield, Phone } from "lucide-react";
+import { User, Heart, Shield, Phone, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const PatientRegistration: React.FC = () => {
@@ -24,12 +26,13 @@ const PatientRegistration: React.FC = () => {
     lastName: "",
     dateOfBirth: "",
     gender: "",
+    bloodGroup: "",
+    aadharNumber: "",
     phone: "",
     email: "",
     address: "",
     city: "",
-    state: "",
-    zipCode: "",
+    pinCode: "",
 
     // Emergency Contact
     emergencyName: "",
@@ -37,20 +40,48 @@ const PatientRegistration: React.FC = () => {
     emergencyRelation: "",
 
     // Insurance Information
-    insuranceProvider: "",
+    insuranceCoverage: "no",
+    insuranceType: "",
+    schemeName: "",
     policyNumber: "",
-    groupNumber: "",
+    insuranceProvider: "",
+    policyHolderName: "",
+    relationshipToHolder: "",
+    policyExpiryDate: "",
+    claimAmountLimit: "",
 
     // Medical History
-    allergies: "",
-    medications: "",
-    medicalHistory: "",
-    preferredLanguage: "English",
-    communicationMethod: "phone",
+    knownAllergies: [] as string[],
+    otherAllergy: "",
+    drugAllergies: "",
+    foodAllergies: "",
+    currentMedications: "",
+    chronicConditions: [] as string[],
+    pastSurgeries: "",
+    familyMedicalHistory: "",
+    disability: "",
+
+    // Communication Preferences
+    contactMethods: [] as string[],
   });
 
   const [photoId, setPhotoId] = useState<Blob | null>(null);
+  const [insuranceCard, setInsuranceCard] = useState<Blob | null>(null);
+  const [pmjayCard, setPmjayCard] = useState<Blob | null>(null);
   const { toast } = useToast();
+
+  // Calculate age from date of birth
+  const age = useMemo(() => {
+    if (!formData.dateOfBirth) return "";
+    const today = new Date();
+    const birthDate = new Date(formData.dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age.toString();
+  }, [formData.dateOfBirth]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -72,14 +103,29 @@ const PatientRegistration: React.FC = () => {
       !formData.firstName ||
       !formData.lastName ||
       !formData.dateOfBirth ||
-      !formData.phone
+      !formData.gender ||
+      !formData.phone ||
+      !formData.city ||
+      !formData.pinCode
     ) {
       toast({
         title: "Missing required fields",
-        description: "Please fill in all required fields.",
+        description: "Please fill in all required fields marked with *",
         variant: "destructive",
       });
       return;
+    }
+
+    // Insurance validation
+    if (formData.insuranceCoverage === "yes") {
+      if (!formData.insuranceType || !formData.schemeName || !formData.policyNumber) {
+        toast({
+          title: "Missing insurance information",
+          description: "Please fill in all required insurance fields.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     // In a real app, this would submit to the backend
@@ -88,31 +134,7 @@ const PatientRegistration: React.FC = () => {
       description: `${formData.firstName} ${formData.lastName} has been added to the system.`,
     });
 
-    // Reset form
-    setFormData({
-      firstName: "",
-      lastName: "",
-      dateOfBirth: "",
-      gender: "",
-      phone: "",
-      email: "",
-      address: "",
-      city: "",
-      state: "",
-      zipCode: "",
-      emergencyName: "",
-      emergencyPhone: "",
-      emergencyRelation: "",
-      insuranceProvider: "",
-      policyNumber: "",
-      groupNumber: "",
-      allergies: "",
-      medications: "",
-      medicalHistory: "",
-      preferredLanguage: "English",
-      communicationMethod: "phone",
-    });
-    setPhotoId(null);
+    // Reset form would go here
   };
 
   return (
@@ -129,7 +151,7 @@ const PatientRegistration: React.FC = () => {
 
       <form onSubmit={handleSubmit}>
         <Tabs defaultValue="personal" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="personal" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Personal
@@ -145,6 +167,10 @@ const PatientRegistration: React.FC = () => {
             <TabsTrigger value="medical" className="flex items-center gap-2">
               <Heart className="h-4 w-4" />
               Medical
+            </TabsTrigger>
+            <TabsTrigger value="communication" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Communication
             </TabsTrigger>
           </TabsList>
 
@@ -179,7 +205,7 @@ const PatientRegistration: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
                     <Label htmlFor="dateOfBirth">Date of Birth *</Label>
                     <Input
@@ -193,12 +219,22 @@ const PatientRegistration: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="gender">Gender</Label>
+                    <Label htmlFor="age">Age</Label>
+                    <Input
+                      id="age"
+                      value={age}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="gender">Gender *</Label>
                     <Select
                       value={formData.gender}
                       onValueChange={(value) =>
                         handleInputChange("gender", value)
                       }
+                      required
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select gender" />
@@ -207,14 +243,49 @@ const PatientRegistration: React.FC = () => {
                         <SelectItem value="male">Male</SelectItem>
                         <SelectItem value="female">Female</SelectItem>
                         <SelectItem value="other">Other</SelectItem>
-                        <SelectItem value="prefer-not-to-say">
-                          Prefer not to say
-                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="phone">Phone Number *</Label>
+                    <Label htmlFor="bloodGroup">Blood Group</Label>
+                    <Select
+                      value={formData.bloodGroup}
+                      onValueChange={(value) =>
+                        handleInputChange("bloodGroup", value)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select blood group" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="A+">A+</SelectItem>
+                        <SelectItem value="A-">A-</SelectItem>
+                        <SelectItem value="B+">B+</SelectItem>
+                        <SelectItem value="B-">B-</SelectItem>
+                        <SelectItem value="AB+">AB+</SelectItem>
+                        <SelectItem value="AB-">AB-</SelectItem>
+                        <SelectItem value="O+">O+</SelectItem>
+                        <SelectItem value="O-">O-</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="aadharNumber">Aadhar Number</Label>
+                    <Input
+                      id="aadharNumber"
+                      value={formData.aadharNumber}
+                      onChange={(e) =>
+                        handleInputChange("aadharNumber", e.target.value)
+                      }
+                      maxLength={12}
+                      placeholder="Enter 12-digit Aadhar number"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">Mobile Number *</Label>
                     <Input
                       id="phone"
                       type="tel"
@@ -228,7 +299,7 @@ const PatientRegistration: React.FC = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="email">Email ID</Label>
                   <Input
                     id="email"
                     type="email"
@@ -240,45 +311,39 @@ const PatientRegistration: React.FC = () => {
                 <Separator />
 
                 <div>
-                  <Label htmlFor="address">Street Address</Label>
-                  <Input
+                  <Label htmlFor="address">Address</Label>
+                  <Textarea
                     id="address"
                     value={formData.address}
                     onChange={(e) =>
                       handleInputChange("address", e.target.value)
                     }
+                    rows={2}
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="city">City</Label>
+                    <Label htmlFor="city">City *</Label>
                     <Input
                       id="city"
                       value={formData.city}
                       onChange={(e) =>
                         handleInputChange("city", e.target.value)
                       }
+                      required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="state">State</Label>
+                    <Label htmlFor="pinCode">Pin Code *</Label>
                     <Input
-                      id="state"
-                      value={formData.state}
+                      id="pinCode"
+                      value={formData.pinCode}
                       onChange={(e) =>
-                        handleInputChange("state", e.target.value)
+                        handleInputChange("pinCode", e.target.value)
                       }
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="zipCode">ZIP Code</Label>
-                    <Input
-                      id="zipCode"
-                      value={formData.zipCode}
-                      onChange={(e) =>
-                        handleInputChange("zipCode", e.target.value)
-                      }
+                      maxLength={6}
+                      required
                     />
                   </div>
                 </div>
@@ -286,7 +351,7 @@ const PatientRegistration: React.FC = () => {
                 <Separator />
 
                 <div>
-                  <Label>Photo ID Upload</Label>
+                  <Label>Photo Upload</Label>
                   <div className="mt-2">
                     <PhotoUpload onUpload={handlePhotoUpload} />
                   </div>
@@ -302,7 +367,7 @@ const PatientRegistration: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="emergencyName">Contact Name</Label>
+                  <Label htmlFor="emergencyName">Contact Person Name</Label>
                   <Input
                     id="emergencyName"
                     value={formData.emergencyName}
@@ -312,17 +377,6 @@ const PatientRegistration: React.FC = () => {
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="emergencyPhone">Phone Number</Label>
-                    <Input
-                      id="emergencyPhone"
-                      type="tel"
-                      value={formData.emergencyPhone}
-                      onChange={(e) =>
-                        handleInputChange("emergencyPhone", e.target.value)
-                      }
-                    />
-                  </div>
                   <div>
                     <Label htmlFor="emergencyRelation">Relationship</Label>
                     <Select
@@ -344,6 +398,17 @@ const PatientRegistration: React.FC = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div>
+                    <Label htmlFor="emergencyPhone">Contact Number</Label>
+                    <Input
+                      id="emergencyPhone"
+                      type="tel"
+                      value={formData.emergencyPhone}
+                      onChange={(e) =>
+                        handleInputChange("emergencyPhone", e.target.value)
+                      }
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -352,41 +417,191 @@ const PatientRegistration: React.FC = () => {
           <TabsContent value="insurance">
             <Card>
               <CardHeader>
-                <CardTitle>Insurance Information</CardTitle>
+                <CardTitle>Insurance Details</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div>
-                  <Label htmlFor="insuranceProvider">Insurance Provider</Label>
-                  <Input
-                    id="insuranceProvider"
-                    value={formData.insuranceProvider}
-                    onChange={(e) =>
-                      handleInputChange("insuranceProvider", e.target.value)
+                  <Label>Insurance Coverage *</Label>
+                  <RadioGroup
+                    value={formData.insuranceCoverage}
+                    onValueChange={(value) =>
+                      handleInputChange("insuranceCoverage", value)
                     }
-                  />
+                    className="flex gap-4 mt-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="yes" id="insurance-yes" />
+                      <Label htmlFor="insurance-yes" className="font-normal">Yes</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="no" id="insurance-no" />
+                      <Label htmlFor="insurance-no" className="font-normal">No</Label>
+                    </div>
+                  </RadioGroup>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="policyNumber">Policy Number</Label>
-                    <Input
-                      id="policyNumber"
-                      value={formData.policyNumber}
-                      onChange={(e) =>
-                        handleInputChange("policyNumber", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="groupNumber">Group Number</Label>
-                    <Input
-                      id="groupNumber"
-                      value={formData.groupNumber}
-                      onChange={(e) =>
-                        handleInputChange("groupNumber", e.target.value)
-                      }
-                    />
-                  </div>
-                </div>
+
+                {formData.insuranceCoverage === "yes" && (
+                  <>
+                    <Separator />
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="insuranceType">Insurance Type *</Label>
+                        <Select
+                          value={formData.insuranceType}
+                          onValueChange={(value) =>
+                            handleInputChange("insuranceType", value)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="government">Government</SelectItem>
+                            <SelectItem value="private">Private</SelectItem>
+                            <SelectItem value="none">None</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="schemeName">Scheme Name *</Label>
+                        <Select
+                          value={formData.schemeName}
+                          onValueChange={(value) =>
+                            handleInputChange("schemeName", value)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select scheme" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="mjpjay">Mahatma Jyotiba Phule Jan Arogya Yojana (MJPJAY)</SelectItem>
+                            <SelectItem value="pmjay">Pradhan Mantri Jan Arogya Yojana (PM-JAY/Ayushman Bharat)</SelectItem>
+                            <SelectItem value="esi">Employee State Insurance (ESI)</SelectItem>
+                            <SelectItem value="cghs">Central Government Health Scheme (CGHS)</SelectItem>
+                            <SelectItem value="rgjay">Rajiv Gandhi Jeevandayee Arogya Yojana (RGJAY)</SelectItem>
+                            <SelectItem value="star-health">Star Health</SelectItem>
+                            <SelectItem value="icici-lombard">ICICI Lombard</SelectItem>
+                            <SelectItem value="hdfc-ergo">HDFC Ergo</SelectItem>
+                            <SelectItem value="max-bupa">Max Bupa</SelectItem>
+                            <SelectItem value="care-health">Care Health</SelectItem>
+                            <SelectItem value="other">Other (specify)</SelectItem>
+                            <SelectItem value="none">None</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="policyNumber">Policy/Card Number *</Label>
+                        <Input
+                          id="policyNumber"
+                          value={formData.policyNumber}
+                          onChange={(e) =>
+                            handleInputChange("policyNumber", e.target.value)
+                          }
+                          placeholder="Unique identifier"
+                        />
+                      </div>
+                      
+                      {formData.insuranceType === "private" && (
+                        <div>
+                          <Label htmlFor="insuranceProvider">Insurance Provider</Label>
+                          <Input
+                            id="insuranceProvider"
+                            value={formData.insuranceProvider}
+                            onChange={(e) =>
+                              handleInputChange("insuranceProvider", e.target.value)
+                            }
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="policyHolderName">Policy Holder Name</Label>
+                        <Input
+                          id="policyHolderName"
+                          value={formData.policyHolderName}
+                          onChange={(e) =>
+                            handleInputChange("policyHolderName", e.target.value)
+                          }
+                          placeholder="If different from patient"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="relationshipToHolder">Relationship to Holder</Label>
+                        <Select
+                          value={formData.relationshipToHolder}
+                          onValueChange={(value) =>
+                            handleInputChange("relationshipToHolder", value)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select relationship" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="self">Self</SelectItem>
+                            <SelectItem value="spouse">Spouse</SelectItem>
+                            <SelectItem value="child">Child</SelectItem>
+                            <SelectItem value="parent">Parent</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="policyExpiryDate">Policy Expiry Date</Label>
+                        <Input
+                          id="policyExpiryDate"
+                          type="date"
+                          value={formData.policyExpiryDate}
+                          onChange={(e) =>
+                            handleInputChange("policyExpiryDate", e.target.value)
+                          }
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="claimAmountLimit">Claim Amount Limit (Annual)</Label>
+                        <Input
+                          id="claimAmountLimit"
+                          type="number"
+                          value={formData.claimAmountLimit}
+                          onChange={(e) =>
+                            handleInputChange("claimAmountLimit", e.target.value)
+                          }
+                          placeholder="Enter amount"
+                        />
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div>
+                      <Label>Insurance Card Upload</Label>
+                      <p className="text-sm text-muted-foreground mb-2">Upload front & back (PDF/Image)</p>
+                      <PhotoUpload 
+                        onUpload={setInsuranceCard}
+                        accept="image/*,application/pdf"
+                      />
+                    </div>
+
+                    <div>
+                      <Label>PMJAY/Ayushman Card Upload</Label>
+                      <p className="text-sm text-muted-foreground mb-2">If applicable</p>
+                      <PhotoUpload 
+                        onUpload={setPmjayCard}
+                        accept="image/*,application/pdf"
+                      />
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -396,82 +611,176 @@ const PatientRegistration: React.FC = () => {
               <CardHeader>
                 <CardTitle>Medical History</CardTitle>
               </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <Label>Known Allergies *</Label>
+                  <div className="space-y-2 mt-2">
+                    {["None Known", "Penicillin", "Sulfa Drugs", "Aspirin", "Ibuprofen", "Latex"].map((allergy) => (
+                      <div key={allergy} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`allergy-${allergy}`}
+                          checked={formData.knownAllergies.includes(allergy)}
+                          onCheckedChange={(checked) => {
+                            const newAllergies = checked
+                              ? [...formData.knownAllergies, allergy]
+                              : formData.knownAllergies.filter((a) => a !== allergy);
+                            setFormData((prev) => ({
+                              ...prev,
+                              knownAllergies: newAllergies,
+                            }));
+                          }}
+                        />
+                        <Label htmlFor={`allergy-${allergy}`} className="font-normal">
+                          {allergy}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                  <Input
+                    className="mt-2"
+                    placeholder="Other allergies..."
+                    value={formData.otherAllergy}
+                    onChange={(e) =>
+                      handleInputChange("otherAllergy", e.target.value)
+                    }
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="drugAllergies">Drug Allergies</Label>
+                  <Textarea
+                    id="drugAllergies"
+                    value={formData.drugAllergies}
+                    onChange={(e) =>
+                      handleInputChange("drugAllergies", e.target.value)
+                    }
+                    placeholder="Specific medications that cause allergic reactions..."
+                    rows={2}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="foodAllergies">Food Allergies</Label>
+                  <Textarea
+                    id="foodAllergies"
+                    value={formData.foodAllergies}
+                    onChange={(e) =>
+                      handleInputChange("foodAllergies", e.target.value)
+                    }
+                    placeholder="Food items that cause allergic reactions..."
+                    rows={2}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="currentMedications">Current Medications</Label>
+                  <Textarea
+                    id="currentMedications"
+                    value={formData.currentMedications}
+                    onChange={(e) =>
+                      handleInputChange("currentMedications", e.target.value)
+                    }
+                    placeholder="List all current medications if applicable..."
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <Label>Chronic Conditions</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    {["Diabetes", "Hypertension", "Asthma", "Heart Disease", "Kidney Disease", "Thyroid"].map((condition) => (
+                      <div key={condition} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`condition-${condition}`}
+                          checked={formData.chronicConditions.includes(condition)}
+                          onCheckedChange={(checked) => {
+                            const newConditions = checked
+                              ? [...formData.chronicConditions, condition]
+                              : formData.chronicConditions.filter((c) => c !== condition);
+                            setFormData((prev) => ({
+                              ...prev,
+                              chronicConditions: newConditions,
+                            }));
+                          }}
+                        />
+                        <Label htmlFor={`condition-${condition}`} className="font-normal">
+                          {condition}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="pastSurgeries">Past Surgeries</Label>
+                  <Textarea
+                    id="pastSurgeries"
+                    value={formData.pastSurgeries}
+                    onChange={(e) =>
+                      handleInputChange("pastSurgeries", e.target.value)
+                    }
+                    placeholder="Year and type of surgery..."
+                    rows={2}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="familyMedicalHistory">Family Medical History</Label>
+                  <Textarea
+                    id="familyMedicalHistory"
+                    value={formData.familyMedicalHistory}
+                    onChange={(e) =>
+                      handleInputChange("familyMedicalHistory", e.target.value)
+                    }
+                    placeholder="Hereditary conditions in family..."
+                    rows={2}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="disability">Disability (if any)</Label>
+                  <Input
+                    id="disability"
+                    value={formData.disability}
+                    onChange={(e) =>
+                      handleInputChange("disability", e.target.value)
+                    }
+                    placeholder="Physical/Mental disability"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="communication">
+            <Card>
+              <CardHeader>
+                <CardTitle>Communication Preferences</CardTitle>
+              </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="allergies">Allergies</Label>
-                  <Textarea
-                    id="allergies"
-                    value={formData.allergies}
-                    onChange={(e) =>
-                      handleInputChange("allergies", e.target.value)
-                    }
-                    placeholder="List any known allergies..."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="medications">Current Medications</Label>
-                  <Textarea
-                    id="medications"
-                    value={formData.medications}
-                    onChange={(e) =>
-                      handleInputChange("medications", e.target.value)
-                    }
-                    placeholder="List current medications..."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="medicalHistory">Medical History</Label>
-                  <Textarea
-                    id="medicalHistory"
-                    value={formData.medicalHistory}
-                    onChange={(e) =>
-                      handleInputChange("medicalHistory", e.target.value)
-                    }
-                    placeholder="Previous surgeries, chronic conditions, etc..."
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="preferredLanguage">
-                      Preferred Language
-                    </Label>
-                    <Select
-                      value={formData.preferredLanguage}
-                      onValueChange={(value) =>
-                        handleInputChange("preferredLanguage", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="English">English</SelectItem>
-                        <SelectItem value="Spanish">Spanish</SelectItem>
-                        <SelectItem value="French">French</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="communicationMethod">
-                      Communication Method
-                    </Label>
-                    <Select
-                      value={formData.communicationMethod}
-                      onValueChange={(value) =>
-                        handleInputChange("communicationMethod", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="phone">Phone</SelectItem>
-                        <SelectItem value="email">Email</SelectItem>
-                        <SelectItem value="sms">SMS</SelectItem>
-                        <SelectItem value="mail">Mail</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <Label>Preferred Contact Method</Label>
+                  <div className="grid grid-cols-2 gap-3 mt-2">
+                    {["SMS", "WhatsApp", "Email", "Phone Call"].map((method) => (
+                      <div key={method} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`contact-${method}`}
+                          checked={formData.contactMethods.includes(method)}
+                          onCheckedChange={(checked) => {
+                            const newMethods = checked
+                              ? [...formData.contactMethods, method]
+                              : formData.contactMethods.filter((m) => m !== method);
+                            setFormData((prev) => ({
+                              ...prev,
+                              contactMethods: newMethods,
+                            }));
+                          }}
+                        />
+                        <Label htmlFor={`contact-${method}`} className="font-normal">
+                          {method}
+                        </Label>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </CardContent>
