@@ -1,0 +1,14 @@
+# StaffRole
+
+
+## Enum
+
+* `Admin` (value: `'ADMIN'`)
+
+* `Doctor` (value: `'DOCTOR'`)
+
+* `Receptionist` (value: `'RECEPTIONIST'`)
+
+* `Nurse` (value: `'NURSE'`)
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

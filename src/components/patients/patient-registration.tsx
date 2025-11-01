@@ -30,6 +30,7 @@ const PatientRegistration: React.FC = () => {
     aadharNumber: "",
     phone: "",
     email: "",
+    preferredContactMethod: "",
     address: "",
     city: "",
     pinCode: "",
@@ -168,10 +169,6 @@ const PatientRegistration: React.FC = () => {
               <Heart className="h-4 w-4" />
               Medical
             </TabsTrigger>
-            <TabsTrigger value="communication" className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              Communication
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="personal">
@@ -298,7 +295,8 @@ const PatientRegistration: React.FC = () => {
                   </div>
                 </div>
 
-                <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
                   <Label htmlFor="email">Email ID</Label>
                   <Input
                     id="email"
@@ -306,6 +304,28 @@ const PatientRegistration: React.FC = () => {
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
                   />
+                </div>
+
+                <div>
+                    <Label htmlFor="Preferred Contact Method">Preferred Contact Method *</Label>
+                    <Select
+                      value={formData.preferredContactMethod}
+                      onValueChange={(value) =>
+                        handleInputChange("preferredContactMethod", value)
+                      }
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue defaultValue={'phone'}/>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sms">SMS</SelectItem>
+                        <SelectItem value="email">Email</SelectItem>
+                        <SelectItem value="phone">Phone</SelectItem>
+                        <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <Separator />
@@ -647,32 +667,6 @@ const PatientRegistration: React.FC = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="drugAllergies">Drug Allergies</Label>
-                  <Textarea
-                    id="drugAllergies"
-                    value={formData.drugAllergies}
-                    onChange={(e) =>
-                      handleInputChange("drugAllergies", e.target.value)
-                    }
-                    placeholder="Specific medications that cause allergic reactions..."
-                    rows={2}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="foodAllergies">Food Allergies</Label>
-                  <Textarea
-                    id="foodAllergies"
-                    value={formData.foodAllergies}
-                    onChange={(e) =>
-                      handleInputChange("foodAllergies", e.target.value)
-                    }
-                    placeholder="Food items that cause allergic reactions..."
-                    rows={2}
-                  />
-                </div>
-
-                <div>
                   <Label htmlFor="currentMedications">Current Medications</Label>
                   <Textarea
                     id="currentMedications"
@@ -747,41 +741,6 @@ const PatientRegistration: React.FC = () => {
                     }
                     placeholder="Physical/Mental disability"
                   />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="communication">
-            <Card>
-              <CardHeader>
-                <CardTitle>Communication Preferences</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Preferred Contact Method</Label>
-                  <div className="grid grid-cols-2 gap-3 mt-2">
-                    {["SMS", "WhatsApp", "Email", "Phone Call"].map((method) => (
-                      <div key={method} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`contact-${method}`}
-                          checked={formData.contactMethods.includes(method)}
-                          onCheckedChange={(checked) => {
-                            const newMethods = checked
-                              ? [...formData.contactMethods, method]
-                              : formData.contactMethods.filter((m) => m !== method);
-                            setFormData((prev) => ({
-                              ...prev,
-                              contactMethods: newMethods,
-                            }));
-                          }}
-                        />
-                        <Label htmlFor={`contact-${method}`} className="font-normal">
-                          {method}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </CardContent>
             </Card>
