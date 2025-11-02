@@ -34,10 +34,22 @@ const Navigation: React.FC<NavigationProps> = ({
       roles: ["ADMIN", "RECEPTIONIST", "DOCTOR", "BILLING"],
     },
     {
-      id: "patients",
-      label: "Patients",
+      id: "patient-list",
+      label: "Patient List",
       icon: Users,
-      roles: ["RECEPTIONIST", "DOCTOR"],
+      roles: ["RECEPTIONIST", "DOCTOR", "ADMIN"],
+    },
+    {
+      id: "patient-registration",
+      label: "Register Patient",
+      icon: Users,
+      roles: ["RECEPTIONIST", "ADMIN"],
+    },
+    {
+      id: "bulk-onboarding",
+      label: "Bulk Registration",
+      icon: Users,
+      roles: ["RECEPTIONIST", "ADMIN"],
     },
     {
       id: "appointments",

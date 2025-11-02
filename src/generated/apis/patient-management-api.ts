@@ -22,6 +22,10 @@ import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObj
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, type RequestArgs, BaseAPI, RequiredError, operationServerMap } from '../base';
 // @ts-ignore
+import type { BatchPatientResponse } from '../models';
+// @ts-ignore
+import type { CsvUploadResponse } from '../models';
+// @ts-ignore
 import type { ErrorResponse } from '../models';
 // @ts-ignore
 import type { PatientPageResponse } from '../models';
@@ -56,6 +60,40 @@ export const PatientManagementApiAxiosParamCreator = function (configuration?: C
             }
 
             const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Download a CSV template file with proper headers for patient import
+         * @summary Download CSV template
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        downloadCsvTemplate: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/patients/download-csv-template`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -200,13 +238,13 @@ export const PatientManagementApiAxiosParamCreator = function (configuration?: C
             };
         },
         /**
-         * Register a new patient with personal, emergency, insurance, and medical details
-         * @summary Register new patient
-         * @param {PatientRegistrationRequest} patientRegistrationRequest 
+         * Register one or more patients with personal, emergency, insurance, and medical details
+         * @summary Register multiple patients (batch registration)
+         * @param {Array<PatientRegistrationRequest>} patientRegistrationRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        registerPatient: async (patientRegistrationRequest: PatientRegistrationRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        registerPatient: async (patientRegistrationRequest: Array<PatientRegistrationRequest>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'patientRegistrationRequest' is not null or undefined
             assertParamExists('registerPatient', 'patientRegistrationRequest', patientRegistrationRequest)
             const localVarPath = `/api/patients`;
@@ -334,6 +372,51 @@ export const PatientManagementApiAxiosParamCreator = function (configuration?: C
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * Upload a CSV file containing patient details for batch registration.  **CSV Format:** - First row must be headers (case-insensitive) - Required columns: firstName, lastName, dateOfBirth, gender, mobileNumber, city, pinCode - Optional columns: bloodGroup, aadharNumber, emailId, addressLine1, district, state  **Example CSV:** ``` firstName,lastName,dateOfBirth,gender,bloodGroup,mobileNumber,emailId,city,pinCode Rahul,Patil,1985-03-15,MALE,O+,9876543210,rahul@gmail.com,Sangli,416416 Priya,Sharma,1990-07-22,FEMALE,A+,9876543211,priya@gmail.com,Sangli,416416 ``` 
+         * @summary Upload CSV file for bulk patient registration
+         * @param {File} file CSV file containing patient data
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        uploadPatientsCsv: async (file: File, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'file' is not null or undefined
+            assertParamExists('uploadPatientsCsv', 'file', file)
+            const localVarPath = `/api/patients/upload-csv`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+            const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)();
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+            if (file !== undefined) { 
+                localVarFormParams.append('file', file as any);
+            }
+    
+    
+            localVarHeaderParameter['Content-Type'] = 'multipart/form-data';
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = localVarFormParams;
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -354,6 +437,18 @@ export const PatientManagementApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.deletePatient(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['PatientManagementApi.deletePatient']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Download a CSV template file with proper headers for patient import
+         * @summary Download CSV template
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async downloadCsvTemplate(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<File>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.downloadCsvTemplate(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['PatientManagementApi.downloadCsvTemplate']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -398,13 +493,13 @@ export const PatientManagementApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Register a new patient with personal, emergency, insurance, and medical details
-         * @summary Register new patient
-         * @param {PatientRegistrationRequest} patientRegistrationRequest 
+         * Register one or more patients with personal, emergency, insurance, and medical details
+         * @summary Register multiple patients (batch registration)
+         * @param {Array<PatientRegistrationRequest>} patientRegistrationRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async registerPatient(patientRegistrationRequest: PatientRegistrationRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PatientResponse>> {
+        async registerPatient(patientRegistrationRequest: Array<PatientRegistrationRequest>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BatchPatientResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.registerPatient(patientRegistrationRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['PatientManagementApi.registerPatient']?.[localVarOperationServerIndex]?.url;
@@ -439,6 +534,19 @@ export const PatientManagementApiFp = function(configuration?: Configuration) {
             const localVarOperationServerBasePath = operationServerMap['PatientManagementApi.updatePatient']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
+        /**
+         * Upload a CSV file containing patient details for batch registration.  **CSV Format:** - First row must be headers (case-insensitive) - Required columns: firstName, lastName, dateOfBirth, gender, mobileNumber, city, pinCode - Optional columns: bloodGroup, aadharNumber, emailId, addressLine1, district, state  **Example CSV:** ``` firstName,lastName,dateOfBirth,gender,bloodGroup,mobileNumber,emailId,city,pinCode Rahul,Patil,1985-03-15,MALE,O+,9876543210,rahul@gmail.com,Sangli,416416 Priya,Sharma,1990-07-22,FEMALE,A+,9876543211,priya@gmail.com,Sangli,416416 ``` 
+         * @summary Upload CSV file for bulk patient registration
+         * @param {File} file CSV file containing patient data
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async uploadPatientsCsv(file: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CsvUploadResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.uploadPatientsCsv(file, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['PatientManagementApi.uploadPatientsCsv']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
     }
 };
 
@@ -457,6 +565,15 @@ export const PatientManagementApiFactory = function (configuration?: Configurati
          */
         deletePatient(id: number, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.deletePatient(id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Download a CSV template file with proper headers for patient import
+         * @summary Download CSV template
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        downloadCsvTemplate(options?: RawAxiosRequestConfig): AxiosPromise<File> {
+            return localVarFp.downloadCsvTemplate(options).then((request) => request(axios, basePath));
         },
         /**
          * Retrieve paginated list of all patients
@@ -491,13 +608,13 @@ export const PatientManagementApiFactory = function (configuration?: Configurati
             return localVarFp.getPatientByPatientId(patientId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Register a new patient with personal, emergency, insurance, and medical details
-         * @summary Register new patient
-         * @param {PatientRegistrationRequest} patientRegistrationRequest 
+         * Register one or more patients with personal, emergency, insurance, and medical details
+         * @summary Register multiple patients (batch registration)
+         * @param {Array<PatientRegistrationRequest>} patientRegistrationRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        registerPatient(patientRegistrationRequest: PatientRegistrationRequest, options?: RawAxiosRequestConfig): AxiosPromise<PatientResponse> {
+        registerPatient(patientRegistrationRequest: Array<PatientRegistrationRequest>, options?: RawAxiosRequestConfig): AxiosPromise<BatchPatientResponse> {
             return localVarFp.registerPatient(patientRegistrationRequest, options).then((request) => request(axios, basePath));
         },
         /**
@@ -523,6 +640,16 @@ export const PatientManagementApiFactory = function (configuration?: Configurati
         updatePatient(id: number, patientRegistrationRequest: PatientRegistrationRequest, options?: RawAxiosRequestConfig): AxiosPromise<PatientResponse> {
             return localVarFp.updatePatient(id, patientRegistrationRequest, options).then((request) => request(axios, basePath));
         },
+        /**
+         * Upload a CSV file containing patient details for batch registration.  **CSV Format:** - First row must be headers (case-insensitive) - Required columns: firstName, lastName, dateOfBirth, gender, mobileNumber, city, pinCode - Optional columns: bloodGroup, aadharNumber, emailId, addressLine1, district, state  **Example CSV:** ``` firstName,lastName,dateOfBirth,gender,bloodGroup,mobileNumber,emailId,city,pinCode Rahul,Patil,1985-03-15,MALE,O+,9876543210,rahul@gmail.com,Sangli,416416 Priya,Sharma,1990-07-22,FEMALE,A+,9876543211,priya@gmail.com,Sangli,416416 ``` 
+         * @summary Upload CSV file for bulk patient registration
+         * @param {File} file CSV file containing patient data
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        uploadPatientsCsv(file: File, options?: RawAxiosRequestConfig): AxiosPromise<CsvUploadResponse> {
+            return localVarFp.uploadPatientsCsv(file, options).then((request) => request(axios, basePath));
+        },
     };
 };
 
@@ -539,6 +666,16 @@ export class PatientManagementApi extends BaseAPI {
      */
     public deletePatient(id: number, options?: RawAxiosRequestConfig) {
         return PatientManagementApiFp(this.configuration).deletePatient(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Download a CSV template file with proper headers for patient import
+     * @summary Download CSV template
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public downloadCsvTemplate(options?: RawAxiosRequestConfig) {
+        return PatientManagementApiFp(this.configuration).downloadCsvTemplate(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -577,13 +714,13 @@ export class PatientManagementApi extends BaseAPI {
     }
 
     /**
-     * Register a new patient with personal, emergency, insurance, and medical details
-     * @summary Register new patient
-     * @param {PatientRegistrationRequest} patientRegistrationRequest 
+     * Register one or more patients with personal, emergency, insurance, and medical details
+     * @summary Register multiple patients (batch registration)
+     * @param {Array<PatientRegistrationRequest>} patientRegistrationRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public registerPatient(patientRegistrationRequest: PatientRegistrationRequest, options?: RawAxiosRequestConfig) {
+    public registerPatient(patientRegistrationRequest: Array<PatientRegistrationRequest>, options?: RawAxiosRequestConfig) {
         return PatientManagementApiFp(this.configuration).registerPatient(patientRegistrationRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -610,6 +747,17 @@ export class PatientManagementApi extends BaseAPI {
      */
     public updatePatient(id: number, patientRegistrationRequest: PatientRegistrationRequest, options?: RawAxiosRequestConfig) {
         return PatientManagementApiFp(this.configuration).updatePatient(id, patientRegistrationRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Upload a CSV file containing patient details for batch registration.  **CSV Format:** - First row must be headers (case-insensitive) - Required columns: firstName, lastName, dateOfBirth, gender, mobileNumber, city, pinCode - Optional columns: bloodGroup, aadharNumber, emailId, addressLine1, district, state  **Example CSV:** ``` firstName,lastName,dateOfBirth,gender,bloodGroup,mobileNumber,emailId,city,pinCode Rahul,Patil,1985-03-15,MALE,O+,9876543210,rahul@gmail.com,Sangli,416416 Priya,Sharma,1990-07-22,FEMALE,A+,9876543211,priya@gmail.com,Sangli,416416 ``` 
+     * @summary Upload CSV file for bulk patient registration
+     * @param {File} file CSV file containing patient data
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public uploadPatientsCsv(file: File, options?: RawAxiosRequestConfig) {
+        return PatientManagementApiFp(this.configuration).uploadPatientsCsv(file, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

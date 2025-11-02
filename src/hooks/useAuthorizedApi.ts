@@ -34,6 +34,11 @@ export default function useAuthorizedApi<
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         };
 
+        // ✅ Remove Content-Type if data is FormData (axios will set it)
+        if (config.data instanceof FormData) {
+          delete headers['Content-Type'];
+        }
+
         const finalConfig: AxiosRequestConfig = {
           ...config,
           withCredentials: false, // change to true if you also use cookies
@@ -45,11 +50,10 @@ export default function useAuthorizedApi<
           data: finalConfig.data,
           params: finalConfig.params,
         });
-        console.log("API Response:", response);
         setData(response.data);
 
         return {
-          data: response.status == 200 ? response.data : null,
+          data: response.status == 200 || response.status == 201 ? response.data : null,
           status: response.status,
           error: response.status != 200 ? response.data : null,
         };

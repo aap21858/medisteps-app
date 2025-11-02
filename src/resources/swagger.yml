@@ -141,34 +141,38 @@ paths:
     post:
       tags:
         - Patient Management
-      summary: Register new patient
-      description: Register a new patient with personal, emergency, insurance, and medical details
+      summary: Register multiple patients (batch registration)
+      description: Register one or more patients with personal, emergency, insurance, and medical details
       operationId: registerPatient
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatientRegistrationRequest'
+              type: array
+              items:
+                $ref: '#/components/schemas/PatientRegistrationRequest'
+              minItems: 1
+              maxItems: 1000  # Optional: limit batch size
       responses:
         '201':
-          description: Patient registered successfully
+          description: Patients registered successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PatientResponse'
+                $ref: '#/components/schemas/BatchPatientResponse'  # ✅ New response schema
+        '207':
+          description: Multi-status - Some patients registered, some failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchPatientResponse'
         '400':
           description: Invalid input data
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ValidationErrorResponse'
-        '409':
-          description: Duplicate mobile/Aadhar number
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
@@ -518,6 +522,73 @@ paths:
                   message:
                     type: string
                     example: "Activation email sent to user@example.com"
+
+    # ==================== Patient Management ====================
+
+  /api/patients/upload-csv:
+      post:
+        tags:
+          - Patient Management
+        summary: Upload CSV file for bulk patient registration
+        description: |
+          Upload a CSV file containing patient details for batch registration.
+
+          **CSV Format:**
+          - First row must be headers (case-insensitive)
+          - Required columns: firstName, lastName, dateOfBirth, gender, mobileNumber, city, pinCode
+          - Optional columns: bloodGroup, aadharNumber, emailId, addressLine1, district, state
+
+          **Example CSV:**
+          ```
+          firstName,lastName,dateOfBirth,gender,bloodGroup,mobileNumber,emailId,city,pinCode
+          Rahul,Patil,1985-03-15,MALE,O+,9876543210,rahul@gmail.com,Sangli,416416
+          Priya,Sharma,1990-07-22,FEMALE,A+,9876543211,priya@gmail.com,Sangli,416416
+          ```
+        operationId: uploadPatientsCsv
+        requestBody:
+          required: true
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                required:
+                  - file
+                properties:
+                  file:
+                    type: string
+                    format: binary
+                    description: CSV file containing patient data
+        responses:
+          '200':
+            description: CSV processed successfully (may contain partial failures)
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/CsvUploadResponse'
+          '400':
+            description: Invalid CSV file or format
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+          '401':
+            $ref: '#/components/responses/UnauthorizedError'
+
+  /api/patients/download-csv-template:
+    get:
+      tags:
+        - Patient Management
+      summary: Download CSV template
+      description: Download a CSV template file with proper headers for patient import
+      operationId: downloadCsvTemplate
+      responses:
+        '200':
+          description: CSV template file
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
 
 # ============================================
 # COMPONENTS (Schemas, Parameters, etc.)
@@ -1228,3 +1299,120 @@ components:
           example:
             firstName: "First name is required"
             mobileNumber: "Mobile number must be 10 digits"
+
+    FailedRegistration:
+      type: object
+      x-class-extra-annotation: "@lombok.Data @lombok.Builder @lombok.AllArgsConstructor"
+      properties:
+        requestIndex:
+          type: integer
+          description: Index of the failed request in the input array
+          example: 2
+        patientData:
+          $ref: '#/components/schemas/PatientRegistrationRequest'
+        errorMessage:
+          type: string
+          description: Reason for failure
+          example: "Patient already exists with mobileNumber: 9876543210"
+        errorCode:
+          type: string
+          description: Error code for categorization
+          enum:
+            - DUPLICATE_MOBILE
+            - DUPLICATE_AADHAR
+            - VALIDATION_ERROR
+            - INTERNAL_ERROR
+          example: "DUPLICATE_MOBILE"
+
+    BatchPatientResponse:
+      type: object
+      x-class-extra-annotation: "@lombok.Data @lombok.Builder @lombok.AllArgsConstructor"
+      properties:
+        totalRequested:
+          type: integer
+          description: Total number of patients in the request
+          example: 5
+        successCount:
+          type: integer
+          description: Number of successfully registered patients
+          example: 4
+        failureCount:
+          type: integer
+          description: Number of failed registrations
+          example: 1
+        successfulRegistrations:
+          type: array
+          description: List of successfully registered patients
+          items:
+            $ref: '#/components/schemas/PatientResponse'
+        failedRegistrations:
+          type: array
+          description: List of failed registrations with error details
+          items:
+            $ref: '#/components/schemas/FailedRegistration'
+
+        # ==================== CSV Upload Models ====================
+
+    CsvValidationError:
+          type: object
+          x-class-extra-annotation: "@lombok.Data @lombok.Builder @lombok.AllArgsConstructor"
+          properties:
+            rowNumber:
+              type: integer
+              description: Row number in CSV file (1-based, excluding header)
+              example: 3
+            rowData:
+              type: object
+              additionalProperties:
+                type: string
+              description: Original row data from CSV
+              example:
+                firstName: "John"
+                lastName: ""
+                mobileNumber: "invalid"
+            errors:
+              type: array
+              description: List of validation errors for this row
+              items:
+                type: string
+              example:
+                - "lastName: Last name is required"
+                - "mobileNumber: Mobile number must be 10 digits"
+            errorType:
+              type: string
+              enum:
+                - VALIDATION_ERROR
+                - DUPLICATE_ERROR
+                - PARSING_ERROR
+              example: "VALIDATION_ERROR"
+
+    CsvUploadResponse:
+          type: object
+          x-class-extra-annotation: "@lombok.Data @lombok.Builder @lombok.AllArgsConstructor"
+          properties:
+            fileName:
+              type: string
+              description: Name of the uploaded file
+              example: "patients.csv"
+            totalRows:
+              type: integer
+              description: Total number of data rows in CSV (excluding header)
+              example: 10
+            successCount:
+              type: integer
+              description: Number of successfully registered patients
+              example: 8
+            failureCount:
+              type: integer
+              description: Number of failed registrations
+              example: 2
+            validationErrors:
+              type: array
+              description: List of validation errors for failed rows
+              items:
+                $ref: '#/components/schemas/CsvValidationError'
+            successfulRegistrations:
+              type: array
+              description: List of successfully registered patients
+              items:
+                $ref: '#/components/schemas/PatientResponse'

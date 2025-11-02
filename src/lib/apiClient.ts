@@ -5,9 +5,6 @@ const apiClient = axios.create({
   baseURL: (typeof process !== "undefined" && process.env.REACT_APP_API_BASE_URL) ||
   // default
   "http://localhost:8081",
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 // Attach token automatically

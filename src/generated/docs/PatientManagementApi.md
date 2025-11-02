@@ -5,12 +5,14 @@ All URIs are relative to *http://localhost:8080*
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
 |[**deletePatient**](#deletepatient) | **DELETE** /api/patients/{id} | Delete (deactivate) patient|
+|[**downloadCsvTemplate**](#downloadcsvtemplate) | **GET** /api/patients/download-csv-template | Download CSV template|
 |[**getAllPatients**](#getallpatients) | **GET** /api/patients | Get all patients (paginated)|
 |[**getPatientById**](#getpatientbyid) | **GET** /api/patients/{id} | Get patient by ID|
 |[**getPatientByPatientId**](#getpatientbypatientid) | **GET** /api/patients/patient-id/{patientId} | Get patient by Patient ID|
-|[**registerPatient**](#registerpatient) | **POST** /api/patients | Register new patient|
+|[**registerPatient**](#registerpatient) | **POST** /api/patients | Register multiple patients (batch registration)|
 |[**searchPatients**](#searchpatients) | **GET** /api/patients/search | Search patients|
 |[**updatePatient**](#updatepatient) | **PUT** /api/patients/{id} | Update patient|
+|[**uploadPatientsCsv**](#uploadpatientscsv) | **POST** /api/patients/upload-csv | Upload CSV file for bulk patient registration|
 
 # **deletePatient**
 > deletePatient()
@@ -62,6 +64,50 @@ void (empty response body)
 |**204** | Patient deactivated successfully |  -  |
 |**404** | Patient not found |  -  |
 |**401** | Access token is missing or invalid |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **downloadCsvTemplate**
+> File downloadCsvTemplate()
+
+Download a CSV template file with proper headers for patient import
+
+### Example
+
+```typescript
+import {
+    PatientManagementApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new PatientManagementApi(configuration);
+
+const { status, data } = await apiInstance.downloadCsvTemplate();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**File**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: text/csv
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | CSV template file |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -229,23 +275,22 @@ const { status, data } = await apiInstance.getPatientByPatientId(
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **registerPatient**
-> PatientResponse registerPatient(patientRegistrationRequest)
+> BatchPatientResponse registerPatient(patientRegistrationRequest)
 
-Register a new patient with personal, emergency, insurance, and medical details
+Register one or more patients with personal, emergency, insurance, and medical details
 
 ### Example
 
 ```typescript
 import {
     PatientManagementApi,
-    Configuration,
-    PatientRegistrationRequest
+    Configuration
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new PatientManagementApi(configuration);
 
-let patientRegistrationRequest: PatientRegistrationRequest; //
+let patientRegistrationRequest: Array<PatientRegistrationRequest>; //
 
 const { status, data } = await apiInstance.registerPatient(
     patientRegistrationRequest
@@ -256,12 +301,12 @@ const { status, data } = await apiInstance.registerPatient(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **patientRegistrationRequest** | **PatientRegistrationRequest**|  | |
+| **patientRegistrationRequest** | **Array<PatientRegistrationRequest>**|  | |
 
 
 ### Return type
 
-**PatientResponse**
+**BatchPatientResponse**
 
 ### Authorization
 
@@ -276,9 +321,9 @@ const { status, data } = await apiInstance.registerPatient(
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**201** | Patient registered successfully |  -  |
+|**201** | Patients registered successfully |  -  |
+|**207** | Multi-status - Some patients registered, some failed |  -  |
 |**400** | Invalid input data |  -  |
-|**409** | Duplicate mobile/Aadhar number |  -  |
 |**401** | Access token is missing or invalid |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -394,6 +439,59 @@ const { status, data } = await apiInstance.updatePatient(
 |**200** | Patient updated successfully |  -  |
 |**404** | Patient not found |  -  |
 |**400** | Invalid input data |  -  |
+|**401** | Access token is missing or invalid |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **uploadPatientsCsv**
+> CsvUploadResponse uploadPatientsCsv()
+
+Upload a CSV file containing patient details for batch registration.  **CSV Format:** - First row must be headers (case-insensitive) - Required columns: firstName, lastName, dateOfBirth, gender, mobileNumber, city, pinCode - Optional columns: bloodGroup, aadharNumber, emailId, addressLine1, district, state  **Example CSV:** ``` firstName,lastName,dateOfBirth,gender,bloodGroup,mobileNumber,emailId,city,pinCode Rahul,Patil,1985-03-15,MALE,O+,9876543210,rahul@gmail.com,Sangli,416416 Priya,Sharma,1990-07-22,FEMALE,A+,9876543211,priya@gmail.com,Sangli,416416 ``` 
+
+### Example
+
+```typescript
+import {
+    PatientManagementApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new PatientManagementApi(configuration);
+
+let file: File; //CSV file containing patient data (default to undefined)
+
+const { status, data } = await apiInstance.uploadPatientsCsv(
+    file
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **file** | [**File**] | CSV file containing patient data | defaults to undefined|
+
+
+### Return type
+
+**CsvUploadResponse**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: multipart/form-data
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | CSV processed successfully (may contain partial failures) |  -  |
+|**400** | Invalid CSV file or format |  -  |
 |**401** | Access token is missing or invalid |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

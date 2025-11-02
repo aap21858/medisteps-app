@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import Navigation from "@/components/layout/navigation";
 import DashboardOverview from "@/components/dashboard/dashboard-overview";
 import PatientRegistration from "@/components/patients/patient-registration";
+import PatientList from "@/components/patients/patient-list";
 import AppointmentScheduler from "@/components/appointments/appointment-scheduler";
 import StaffManagement from "@/components/staff/staff-management";
 import { SetPassword } from "@/components/staff/set-password";
 import heroImage from "@/assets/medical-hero.jpg";
 import { Role } from "@/model/Role";
 import { getCurrentUser } from "@/lib/authContext";
+import PatientBulkOnboarding from "@/components/patients/patient-bulk-onboarding";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -17,8 +19,12 @@ const Index = () => {
     switch (activeTab) {
       case "dashboard":
         return <DashboardOverview userRole={userRole} />;
-      case "patients":
+      case "patient-list":
+        return <PatientList />;
+      case "patient-registration":
         return <PatientRegistration />;
+      case "bulk-onboarding":
+        return <PatientBulkOnboarding />;
       case "appointments":
         return <AppointmentScheduler />;
       case "staff":
