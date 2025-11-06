@@ -22,7 +22,7 @@ export const mockPatient: PatientRegistrationRequest = {
   district: "",
   state: "",
   pinCode: "",
-  emergencyContacts: undefined,
+  emergencyContacts: [],
   insurance: undefined,
   medicalHistory: undefined,
 };

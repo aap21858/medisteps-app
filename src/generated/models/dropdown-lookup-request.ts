@@ -14,9 +14,26 @@
 
 
 
-export * from './apis/authentication-api';
-export * from './apis/dropdown-lookup-api';
-export * from './apis/insurance-schemes-api';
-export * from './apis/patient-management-api';
-export * from './apis/staff-management-api';
+export interface DropdownLookupRequest {
+    /**
+     * Category/type of the lookup value
+     */
+    'type': string;
+    /**
+     * Unique code within the type
+     */
+    'code': string;
+    /**
+     * Human readable description
+     */
+    'description'?: string;
+    /**
+     * Whether the value is active
+     */
+    'active'?: boolean;
+    /**
+     * Order for display in lists
+     */
+    'displayOrder'?: number;
+}
 

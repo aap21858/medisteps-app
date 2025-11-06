@@ -1,8 +1,8 @@
 .gitignore
 .npmignore
-.openapi-generator-ignore
 api.ts
 apis/authentication-api.ts
+apis/dropdown-lookup-api.ts
 apis/insurance-schemes-api.ts
 apis/patient-management-api.ts
 apis/staff-management-api.ts
@@ -15,6 +15,9 @@ docs/BloodGroup.md
 docs/CsvUploadResponse.md
 docs/CsvValidationError.md
 docs/DeleteStaff200Response.md
+docs/DropdownLookupApi.md
+docs/DropdownLookupRequest.md
+docs/DropdownLookupResponse.md
 docs/EmergencyContactRequest.md
 docs/EmergencyContactResponse.md
 docs/ErrorResponse.md
@@ -57,6 +60,8 @@ models/blood-group.ts
 models/csv-upload-response.ts
 models/csv-validation-error.ts
 models/delete-staff200-response.ts
+models/dropdown-lookup-request.ts
+models/dropdown-lookup-response.ts
 models/emergency-contact-request.ts
 models/emergency-contact-response.ts
 models/error-response.ts

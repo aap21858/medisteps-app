@@ -3,6 +3,8 @@ export * from './blood-group';
 export * from './csv-upload-response';
 export * from './csv-validation-error';
 export * from './delete-staff200-response';
+export * from './dropdown-lookup-request';
+export * from './dropdown-lookup-response';
 export * from './emergency-contact-request';
 export * from './emergency-contact-response';
 export * from './error-response';

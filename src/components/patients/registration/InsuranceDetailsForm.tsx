@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import useAuthorizedApi from "@/hooks/useAuthorizedApi";
+import type { DropdownLookupResponse } from "@/generated/models/dropdown-lookup-response";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -14,6 +16,8 @@ import type { InsuranceRequest } from "@/generated/models/insurance-request";
 interface InsuranceDetailsFormProps extends FormSectionProps {
   onInsuranceCardUpload: (file: Blob) => void;
   onPmjayCardUpload: (file: Blob) => void;
+  // Optional bulk updater for insurance object to allow atomic updates
+  onBulkChange?: (updates: Partial<InsuranceRequest>) => void;
 }
 
 const defaultInsurance: InsuranceRequest = {
@@ -43,6 +47,15 @@ export const InsuranceDetailsForm: React.FC<InsuranceDetailsFormProps> = ({
     onInputChange("insurance", {
       ...insurance,
       [field]: value,
+    });
+  };
+
+  // Allows applying multiple insurance updates in one call to avoid
+  // sequential updates that can overwrite each other due to stale snapshots.
+  const handleInsuranceBulkChange = (updates: Partial<InsuranceRequest>) => {
+    onInputChange("insurance", {
+      ...insurance,
+      ...updates,
     });
   };
 
@@ -78,6 +91,7 @@ export const InsuranceDetailsForm: React.FC<InsuranceDetailsFormProps> = ({
           <InsuranceForm
             formData={{ ...formData, insurance }}
             onInputChange={handleInsuranceChange}
+            onBulkChange={handleInsuranceBulkChange}
             onInsuranceCardUpload={onInsuranceCardUpload}
             onPmjayCardUpload={onPmjayCardUpload}
           />
@@ -90,10 +104,68 @@ export const InsuranceDetailsForm: React.FC<InsuranceDetailsFormProps> = ({
 const InsuranceForm: React.FC<InsuranceDetailsFormProps> = ({
   formData,
   onInputChange,
+  onBulkChange,
   onInsuranceCardUpload,
   onPmjayCardUpload,
 }) => {
+  const [dropdownOptions, setDropdownOptions] = useState<DropdownLookupResponse[]>([]);
+  const [loading, setLoading] = useState(false);
+  const api = useAuthorizedApi();
   const insurance = formData.insurance || defaultInsurance;
+
+  const fetchDropdownOptions = async (type: string) => {
+    try {
+      setLoading(true);
+      const response = await api.request({
+        method: 'GET',
+        url: `/api/dropdowns/type/${type}`,
+        params: { active: true }
+      });
+
+      if (response.status === 200 && Array.isArray(response.data)) {
+        setDropdownOptions(response.data as DropdownLookupResponse[]);
+      } else {
+        setDropdownOptions([]);
+      }
+    } catch (error) {
+      setDropdownOptions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    if (!insurance || !insurance.insuranceType) {
+      setDropdownOptions([]);
+      return;
+    }
+
+    if (insurance.insuranceType === InsuranceType.Government) {
+      fetchDropdownOptions('INSURANCE_SCHEME');
+    } else if (insurance.insuranceType === InsuranceType.Private) {
+      fetchDropdownOptions('INSURANCE_PROVIDER');
+    } else {
+      setDropdownOptions([]);
+    }
+  }, [insurance.insuranceType]);
+
+  const handleInsuranceTypeChange = (value: string) => {
+
+    if (onBulkChange) {
+      onBulkChange({ insuranceType: value as any, schemeId: 0 });
+    } else {
+      onInputChange("insuranceType", value);
+      onInputChange("schemeId", 0);
+    }
+
+    if (value === InsuranceType.Government) {
+      fetchDropdownOptions('INSURANCE_SCHEME');
+    } else if (value === InsuranceType.Private) {
+      fetchDropdownOptions('INSURANCE_PROVIDER');
+    } else {
+      setDropdownOptions([]);
+    }
+  };
 
   return (
     <>
@@ -103,8 +175,8 @@ const InsuranceForm: React.FC<InsuranceDetailsFormProps> = ({
         <div>
           <Label htmlFor="insuranceType">Insurance Type *</Label>
           <Select
-            value={insurance.insuranceType || InsuranceType.None}
-            onValueChange={(value) => onInputChange("insuranceType", value)}
+            value={insurance.insuranceType || InsuranceType.Government}
+            onValueChange={handleInsuranceTypeChange}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select type" />
@@ -112,47 +184,45 @@ const InsuranceForm: React.FC<InsuranceDetailsFormProps> = ({
             <SelectContent>
               <SelectItem value={InsuranceType.Government}>Government</SelectItem>
               <SelectItem value={InsuranceType.Private}>Private</SelectItem>
-              <SelectItem value={InsuranceType.None}>None</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        <div>
-          <Label htmlFor="schemeName">Scheme Name *</Label>
-          <Select
-            value={insurance.schemeId?.toString() ?? ""}
-            onValueChange={(value) => onInputChange("schemeId", parseInt(value, 10))}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select scheme" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">
-                Mahatma Jyotiba Phule Jan Arogya Yojana (MJPJAY)
-              </SelectItem>
-              <SelectItem value="2">
-                Pradhan Mantri Jan Arogya Yojana (PM-JAY/Ayushman Bharat)
-              </SelectItem>
-              <SelectItem value="3">Employee State Insurance (ESI)</SelectItem>
-              <SelectItem value="4">
-                Central Government Health Scheme (CGHS)
-              </SelectItem>
-              <SelectItem value="5">
-                Rajiv Gandhi Jeevandayee Arogya Yojana (RGJAY)
-              </SelectItem>
-              <SelectItem value="6">Star Health</SelectItem>
-              <SelectItem value="7">ICICI Lombard</SelectItem>
-              <SelectItem value="8">HDFC Ergo</SelectItem>
-              <SelectItem value="9">Max Bupa</SelectItem>
-              <SelectItem value="10">Care Health</SelectItem>
-              <SelectItem value="11">Other (specify)</SelectItem>
-              <SelectItem value="0">None</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {insurance.insuranceType !== InsuranceType.None && (
+          <div>
+            <Label htmlFor="schemeProvider">
+              {insurance.insuranceType === InsuranceType.Government ? 'Scheme Name *' : 'Insurance Provider *'}
+            </Label>
+            <Select
+              value={insurance.schemeId?.toString() ?? ""}
+              onValueChange={(value) => onInputChange("schemeId", parseInt(value, 10))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={
+                  insurance.insuranceType === InsuranceType.Government
+                    ? "Select scheme"
+                    : "Select provider"
+                } />
+              </SelectTrigger>
+                <SelectContent>
+                  {loading ? (
+                    <SelectItem value="__loading" disabled>
+                      Loading options...
+                    </SelectItem>
+                  ) : (
+                    dropdownOptions.map((option, idx) => (
+                      <SelectItem key={option.id ?? idx} value={option.id != null ? option.id.toString() : `__opt_${idx}`}>
+                        {option.description}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="policyNumber">Policy/Card Number *</Label>
           <Input
@@ -162,18 +232,7 @@ const InsuranceForm: React.FC<InsuranceDetailsFormProps> = ({
             placeholder="Unique identifier"
           />
         </div>
-
-        {insurance.insuranceType === InsuranceType.Private && (
-          <div>
-            <Label htmlFor="insuranceProvider">Insurance Provider</Label>
-            <Input
-              id="insuranceProvider"
-              value={insurance.schemeId?.toString() || ""}
-              onChange={(e) => onInputChange("schemeId", parseInt(e.target.value, 10))}
-            />
-          </div>
-        )}
-      </div>
+      </div> */}
 
       <PolicyDetails formData={{ ...formData, insurance }} onInputChange={onInputChange} />
 
@@ -205,6 +264,15 @@ const PolicyDetails: React.FC<FormSectionProps> = ({
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="policyNumber">Policy/Card Number *</Label>
+          <Input
+            id="policyNumber"
+            value={insurance.policyCardNumber || ""}
+            onChange={(e) => onInputChange("policyCardNumber", e.target.value)}
+            placeholder="Unique identifier"
+          />
+        </div>
         <div>
           <Label htmlFor="policyHolderName">Policy Holder Name</Label>
           <Input

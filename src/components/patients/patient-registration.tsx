@@ -43,7 +43,12 @@ const PatientRegistration: React.FC = () => {
     return age.toString();
   }, [formData.dateOfBirth]);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: any) => {
+    // Skip validation for empty emergency contacts when they are first added
+    if (field === 'emergencyContacts' && Array.isArray(value)) {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      return;
+    }
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -74,6 +79,21 @@ const PatientRegistration: React.FC = () => {
         variant: "destructive",
       });
       return;
+    }
+
+    // Emergency contacts validation
+    if (formData.emergencyContacts && formData.emergencyContacts.length > 0) {
+      const invalidContacts = formData.emergencyContacts.filter(
+        contact => contact.contactPersonName && !contact.contactNumber
+      );
+      if (invalidContacts.length > 0) {
+        toast({
+          title: "Incomplete emergency contacts",
+          description: "Please fill in all required fields for emergency contacts or remove incomplete entries.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     // Insurance validation

@@ -14,9 +14,14 @@
 
 
 
-export * from './apis/authentication-api';
-export * from './apis/dropdown-lookup-api';
-export * from './apis/insurance-schemes-api';
-export * from './apis/patient-management-api';
-export * from './apis/staff-management-api';
+export interface DropdownLookupResponse {
+    'id'?: number;
+    'type'?: string;
+    'code'?: string;
+    'description'?: string;
+    'active'?: boolean;
+    'displayOrder'?: number;
+    'createdAt'?: string;
+    'updatedAt'?: string;
+}
 

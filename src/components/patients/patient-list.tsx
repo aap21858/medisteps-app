@@ -45,15 +45,16 @@ const PatientList: React.FC = () => {
     number: number;
   }
 
-  const fetchPatients = async (page: number = 0) => {
+  const fetchPatients = async (page: number = 0, search: string = "") => {
     try {
       setLoading(true);
       const response = await api.request({
         method: 'GET',
-        url: '/api/patients',
+        url: search ? '/api/patients/search' : '/api/patients',
         params: {
+          ...(search && { query: search }),
           page,
-          size: 10,
+          size: 20,
           sort: 'createdAt,desc'
         }
       }) as { data: PaginatedResponse; status: number };
@@ -61,6 +62,7 @@ const PatientList: React.FC = () => {
       if (response.status === 200 && response.data) {
         setPatients(response.data.content);
         setTotalPages(response.data.totalPages);
+        setCurrentPage(page);
       }
     } catch (error) {
       toast({
@@ -73,34 +75,19 @@ const PatientList: React.FC = () => {
     }
   };
 
-  const handleSearch = async () => {
-    try {
-      setLoading(true);
-      const response = await api.request({
-        method: 'GET',
-        url: '/api/patients/search',
-        params: {
-          query: searchQuery,
-          page: 0,
-          size: 10
-        }
-      }) as { data: PaginatedResponse; status: number };
-
-      if (response.status === 200 && response.data) {
-        setPatients(response.data.content);
-        setTotalPages(response.data.totalPages);
-        setCurrentPage(0);
-      }
-    } catch (error) {
-      toast({
-        title: "Search failed",
-        description: "Failed to search patients. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Debounce search function
+  const debouncedSearch = React.useCallback(
+    (() => {
+      let timeoutId: NodeJS.Timeout;
+      return (value: string) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          fetchPatients(0, value);
+        }, 500);
+      };
+    })(),
+    []
+  );
 
   const handlePatientUpdated = () => {
     fetchPatients(currentPage);
@@ -113,24 +100,37 @@ const PatientList: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchPatients();
-  }, []);
+    fetchPatients(0, searchQuery);
+  }, []); // Initial load only
+
+  // Clean up the debounce timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debouncedSearch) {
+        // @ts-ignore - TypeScript doesn't know about the internal timeoutId
+        clearTimeout(debouncedSearch.timeoutId);
+      }
+    };
+  }, [debouncedSearch]);
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Patient List</h2>
         <div className="flex gap-2">
-          <Input
-            placeholder="Search patients..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-64"
-          />
-          <Button onClick={handleSearch}>
-            <Search className="h-4 w-4 mr-2" />
-            Search
-          </Button>
+          <div className="relative w-64">
+            <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search patients..."
+              value={searchQuery}
+              onChange={(e) => {
+                const value = e.target.value;
+                setSearchQuery(value);
+                debouncedSearch(value);
+              }}
+              className="pl-9 w-full"
+            />
+          </div>
         </div>
       </div>
 
@@ -204,18 +204,21 @@ const PatientList: React.FC = () => {
         </Table>
       </div>
 
-      <div className="flex justify-center gap-2 mt-4">
+      <div className="flex justify-center items-center gap-2 mt-4">
         <Button
           variant="outline"
-          onClick={() => fetchPatients(currentPage - 1)}
-          disabled={currentPage === 0}
+          onClick={() => fetchPatients(currentPage - 1, searchQuery)}
+          disabled={currentPage === 0 || loading}
         >
           Previous
         </Button>
+        <span className="text-sm text-muted-foreground">
+          Page {currentPage + 1} of {totalPages}
+        </span>
         <Button
           variant="outline"
-          onClick={() => fetchPatients(currentPage + 1)}
-          disabled={currentPage === totalPages - 1}
+          onClick={() => fetchPatients(currentPage + 1, searchQuery)}
+          disabled={currentPage === totalPages - 1 || loading}
         >
           Next
         </Button>

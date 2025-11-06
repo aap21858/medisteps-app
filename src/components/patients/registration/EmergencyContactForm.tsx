@@ -14,18 +14,18 @@ export const EmergencyContactForm: React.FC<FormSectionProps> = ({
   formData,
   onInputChange,
 }) => {
-  const handleAddContact = () => {
+  const handleAddContact = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent form submission
     const newContact: EmergencyContactRequest = {
       contactPersonName: "",
       relationship: Relationship.Other,
       contactNumber: "",
-      isPrimary: formData.emergencyContacts?.length === 0 || false,
+      isPrimary: !formData.emergencyContacts || formData.emergencyContacts.length === 0,
     };
     
-    onInputChange("emergencyContacts", [
-      ...(formData.emergencyContacts || []),
-      newContact,
-    ]);
+    const currentContacts = formData.emergencyContacts || [];
+    const updatedContacts = [...currentContacts, newContact];
+    onInputChange("emergencyContacts", updatedContacts);
   };
 
   const handleUpdateContact = (index: number, field: keyof EmergencyContactRequest, value: any) => {
@@ -56,6 +56,7 @@ export const EmergencyContactForm: React.FC<FormSectionProps> = ({
         <CardTitle>Emergency Contacts</CardTitle>
         <Button
           onClick={handleAddContact}
+          type="button"
           variant="outline"
           className="flex items-center gap-2"
         >
@@ -64,13 +65,13 @@ export const EmergencyContactForm: React.FC<FormSectionProps> = ({
         </Button>
       </CardHeader>
       <CardContent className="space-y-6">
-        {formData.emergencyContacts?.length === 0 && (
+        {(!formData.emergencyContacts || formData.emergencyContacts.length === 0) && (
           <p className="text-sm text-muted-foreground text-center py-4">
             No emergency contacts added. Click the button above to add one.
           </p>
         )}
         
-        {formData.emergencyContacts?.map((contact, index) => (
+        {formData.emergencyContacts && formData.emergencyContacts.map((contact, index) => (
           <div key={index}>
             {index > 0 && <Separator className="my-6" />}
             <div className="flex justify-between items-center mb-4">
