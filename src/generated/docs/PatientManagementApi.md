@@ -4,6 +4,7 @@ All URIs are relative to *http://localhost:8080*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
+|[**activatePatient**](#activatepatient) | **PATCH** /api/patients/{id}/activate | Activate patient by ID|
 |[**deletePatient**](#deletepatient) | **DELETE** /api/patients/{id} | Delete (deactivate) patient|
 |[**downloadCsvTemplate**](#downloadcsvtemplate) | **GET** /api/patients/download-csv-template | Download CSV template|
 |[**getAllPatients**](#getallpatients) | **GET** /api/patients | Get all patients (paginated)|
@@ -13,6 +14,59 @@ All URIs are relative to *http://localhost:8080*
 |[**searchPatients**](#searchpatients) | **GET** /api/patients/search | Search patients|
 |[**updatePatient**](#updatepatient) | **PUT** /api/patients/{id} | Update patient|
 |[**uploadPatientsCsv**](#uploadpatientscsv) | **POST** /api/patients/upload-csv | Upload CSV file for bulk patient registration|
+
+# **activatePatient**
+> PatientResponse activatePatient()
+
+Set patient status to ACTIVE
+
+### Example
+
+```typescript
+import {
+    PatientManagementApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new PatientManagementApi(configuration);
+
+let id: number; //Patient database ID (default to undefined)
+
+const { status, data } = await apiInstance.activatePatient(
+    id
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **id** | [**number**] | Patient database ID | defaults to undefined|
+
+
+### Return type
+
+**PatientResponse**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Patient activated successfully |  -  |
+|**404** | Patient not found |  -  |
+|**401** | Access token is missing or invalid |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **deletePatient**
 > deletePatient()

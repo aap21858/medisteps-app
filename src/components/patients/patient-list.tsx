@@ -33,6 +33,7 @@ const PatientList: React.FC = () => {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [activatingPatientId, setActivatingPatientId] = useState<number | null>(null);
 
   const { toast } = useToast();
   const api = useAuthorizedApi();
@@ -97,6 +98,34 @@ const PatientList: React.FC = () => {
   const handlePatientDeleted = () => {
     fetchPatients(currentPage);
     setIsDeleteDialogOpen(false);
+  };
+
+  const handleActivatePatient = async (patientId: number) => {
+    try {
+      setActivatingPatientId(patientId);
+      const response = await api.request({
+        method: 'PATCH',
+        url: `/api/patients/${patientId}/activate`,
+      });
+
+      if (response.status === 200) {
+        toast({
+          title: "Patient activated",
+          description: `Patient has been activated successfully.`,
+        });
+        fetchPatients(currentPage);
+      } else {
+        throw new Error('Failed to activate patient');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Activation failed",
+        description: error.message || "Failed to activate patient.",
+        variant: "destructive",
+      });
+    } finally {
+      setActivatingPatientId(null);
+    }
   };
 
   useEffect(() => {
@@ -186,15 +215,25 @@ const PatientList: React.FC = () => {
                       >
                         Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setSelectedPatient(patient);
-                          setIsDeleteDialogOpen(true);
-                        }}
-                        className="text-red-600"
-                      >
-                        Deactivate
-                      </DropdownMenuItem>
+                      {patient.status === 'ACTIVE' ? (
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedPatient(patient);
+                            setIsDeleteDialogOpen(true);
+                          }}
+                          className="text-red-600"
+                        >
+                          Deactivate
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem
+                          onClick={() => handleActivatePatient(patient.id)}
+                          disabled={activatingPatientId === patient.id}
+                          className="text-green-600"
+                        >
+                          {activatingPatientId === patient.id ? 'Activating...' : 'Activate'}
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

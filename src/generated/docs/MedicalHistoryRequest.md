@@ -5,8 +5,8 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**knownAllergies** | **string** |  | [optional] [default to undefined]
-**currentMedications** | **string** |  | [optional] [default to undefined]
+**knownAllergies** | **Array&lt;string&gt;** |  | [optional] [default to undefined]
+**currentMedications** | **Array&lt;string&gt;** |  | [optional] [default to undefined]
 **pastSurgeries** | **string** |  | [optional] [default to undefined]
 **chronicConditions** | **string** |  | [optional] [default to undefined]
 **familyMedicalHistory** | **string** |  | [optional] [default to undefined]

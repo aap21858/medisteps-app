@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Healix Clinic Management API
- * REST API for clinic management system with EHR support for Maharashtra small to mid-sized clinics.  ## Features - Patient registration and management - Emergency contact management - Insurance details tracking - Medical history records 
+ * REST API for clinic management system with EHR support for Maharashtra small to mid-sized clinics.  ## Features - Patient registration and management - Emergency contact management - Insurance details tracking - Medical history records - Appointment scheduling and management - Triage, vitals, and examination - Prescription and investigation management - IPD/OPD workflow 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@healix.com
@@ -40,6 +40,44 @@ import type { ValidationErrorResponse } from '../models';
  */
 export const PatientManagementApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * Set patient status to ACTIVE
+         * @summary Activate patient by ID
+         * @param {number} id Patient database ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        activatePatient: async (id: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('activatePatient', 'id', id)
+            const localVarPath = `/api/patients/{id}/activate`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * Soft delete patient by setting status to INACTIVE
          * @summary Delete (deactivate) patient
@@ -427,6 +465,19 @@ export const PatientManagementApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = PatientManagementApiAxiosParamCreator(configuration)
     return {
         /**
+         * Set patient status to ACTIVE
+         * @summary Activate patient by ID
+         * @param {number} id Patient database ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async activatePatient(id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PatientResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.activatePatient(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['PatientManagementApi.activatePatient']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Soft delete patient by setting status to INACTIVE
          * @summary Delete (deactivate) patient
          * @param {number} id Patient database ID
@@ -557,6 +608,16 @@ export const PatientManagementApiFactory = function (configuration?: Configurati
     const localVarFp = PatientManagementApiFp(configuration)
     return {
         /**
+         * Set patient status to ACTIVE
+         * @summary Activate patient by ID
+         * @param {number} id Patient database ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        activatePatient(id: number, options?: RawAxiosRequestConfig): AxiosPromise<PatientResponse> {
+            return localVarFp.activatePatient(id, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Soft delete patient by setting status to INACTIVE
          * @summary Delete (deactivate) patient
          * @param {number} id Patient database ID
@@ -657,6 +718,17 @@ export const PatientManagementApiFactory = function (configuration?: Configurati
  * PatientManagementApi - object-oriented interface
  */
 export class PatientManagementApi extends BaseAPI {
+    /**
+     * Set patient status to ACTIVE
+     * @summary Activate patient by ID
+     * @param {number} id Patient database ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public activatePatient(id: number, options?: RawAxiosRequestConfig) {
+        return PatientManagementApiFp(this.configuration).activatePatient(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * Soft delete patient by setting status to INACTIVE
      * @summary Delete (deactivate) patient

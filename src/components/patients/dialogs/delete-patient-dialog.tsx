@@ -44,7 +44,7 @@ export const DeletePatientDialog: React.FC<DeletePatientDialogProps> = ({
         });
         onPatientDeleted();
       } else {
-        throw new Error(response.error?.message || "Failed to deactivate patient");
+        throw new Error("Failed to deactivate patient");
       }
     } catch (error: any) {
       toast({

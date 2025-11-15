@@ -9,8 +9,8 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "generate:client": "openapi-generator-cli generate -i src/resources/swagger.yml -g typescript-axios -o src/generated/ --additional-properties=withSeparateModelsAndApi=true,apiPackage=apis,modelPackage=models",
-    "generate:react-query": "openapi-generator-cli generate -i src/resources/swagger.yml -g typescript-axios -o src/generated/ --additional-properties=withSeparateModelsAndApi=true,apiPackage=apis,modelPackage=models,supportsES6=true,useSingleRequestParameter=true"
+    "generate:client": "openapi-generator-cli generate -i src/resources/main.yml -g typescript-axios -o src/generated/ --additional-properties=withSeparateModelsAndApi=true,apiPackage=apis,modelPackage=models",
+    "generate:react-query": "openapi-generator-cli generate -i src/resources/main.yml -g typescript-axios -o src/generated/ --additional-properties=withSeparateModelsAndApi=true,apiPackage=apis,modelPackage=models,supportsES6=true,useSingleRequestParameter=true"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
