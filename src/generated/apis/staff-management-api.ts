@@ -83,7 +83,7 @@ export const StaffManagementApiAxiosParamCreator = function (configuration?: Con
          * @throws {RequiredError}
          */
         getAllStaff: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/staff`;
+            const localVarPath = `/api/staff/`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;

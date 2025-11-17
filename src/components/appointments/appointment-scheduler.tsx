@@ -1,424 +1,655 @@
-import React, { useState } from "react";
-import { Calendar, Clock, User, Plus, Search, Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import React, { useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Calendar,
+  Plus,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
+  List,
+  Grid,
+} from "lucide-react";
 import {
   format,
   addDays,
+  subDays,
   isSameDay,
   startOfWeek,
+  endOfWeek,
   addWeeks,
   subWeeks,
+  parseISO,
+  isToday,
 } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import AppointmentForm from "./appointment-form";
+import { useToast } from "@/hooks/use-toast";
 
-// Mock data for doctors and appointments
-const mockDoctors = [
-  {
-    id: "1",
-    name: "Dr. Sarah Johnson",
-    specialty: "Cardiology",
-    color: "bg-primary",
-  },
-  {
-    id: "2",
-    name: "Dr. Michael Chen",
-    specialty: "Neurology",
-    color: "bg-secondary",
-  },
-  {
-    id: "3",
-    name: "Dr. Emily Davis",
-    specialty: "Pediatrics",
-    color: "bg-accent",
-  },
-  {
-    id: "4",
-    name: "Dr. James Wilson",
-    specialty: "Orthopedics",
-    color: "bg-medical-blue",
-  },
+// Services
+import { appointmentService } from "@/services/appointmentService";
+import { staffService } from "@/services/staffService";
+
+// Generated Models
+import {
+  AppointmentStatus,
+  AppointmentType,
+  UrgencyLevel,
+  AppointmentResponse,
+} from "@/generated/models";
+
+// Components
+import { AppointmentFormDialog } from "./AppointmentFormDialog";
+import { AppointmentCard } from "./AppointmentCard";
+import { AppointmentSlotCard } from "./AppointmentSlotCard";
+import { AppointmentWeekCard } from "./AppointmentWeekCard";
+import { AppointmentDetailsDialog } from "./AppointmentDetailsDialog";
+import { AppointmentStats } from "./AppointmentStats";
+import { AppointmentFilters } from "./AppointmentFilters";
+import { RoleEnum } from "@/model/Role";
+
+// Time slots for calendar view (9 AM to 5 PM)
+const TIME_SLOTS = [
+  "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+  "12:00", "12:30", "13:00", "13:30", "14:00", "14:30",
+  "15:00", "15:30", "16:00", "16:30", "17:00",
 ];
 
-const mockAppointments = [
-  {
-    id: "1",
-    patientName: "John Smith",
-    doctorId: "1",
-    date: new Date(),
-    time: "09:00",
-    duration: 30,
-    status: "scheduled",
-    type: "Consultation",
-  },
-  {
-    id: "2",
-    patientName: "Mary Johnson",
-    doctorId: "2",
-    date: new Date(),
-    time: "10:30",
-    duration: 60,
-    status: "checked-in",
-    type: "Follow-up",
-  },
-  {
-    id: "3",
-    patientName: "Robert Davis",
-    doctorId: "1",
-    date: addDays(new Date(), 1),
-    time: "14:00",
-    duration: 45,
-    status: "scheduled",
-    type: "Treatment",
-  },
-];
-
-const timeSlots = [
-  "09:00",
-  "09:30",
-  "10:00",
-  "10:30",
-  "11:00",
-  "11:30",
-  "12:00",
-  "12:30",
-  "13:00",
-  "13:30",
-  "14:00",
-  "14:30",
-  "15:00",
-  "15:30",
-  "16:00",
-  "16:30",
-];
+// View types
+type ViewMode = "day" | "week" | "list";
 
 const AppointmentScheduler: React.FC = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // View state
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentWeek, setCurrentWeek] = useState<Date>(startOfWeek(new Date()));
-  const [view, setView] = useState<"calendar" | "list">("calendar");
-  const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
+
+  // Filter state
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterPhysician, setFilterPhysician] = useState<string>("all");
+  const [filterType, setFilterType] = useState<string>("all");
+  const [filterUrgency, setFilterUrgency] = useState<string>("all");
+
+  // Dialog state
   const [showAppointmentForm, setShowAppointmentForm] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentResponse | null>(null);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [appointmentToDelete, setAppointmentToDelete] = useState<AppointmentResponse | null>(null);
 
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(currentWeek, i));
+  // Fetch appointments
+  const {
+    data: appointmentsData,
+    isLoading: isLoadingAppointments,
+    refetch: refetchAppointments,
+  } = useQuery({
+    queryKey: ["appointments", searchTerm, filterStatus, filterPhysician, filterType, filterUrgency, selectedDate, viewMode],
+    queryFn: async () => {
+      const params: any = {
+        page: 0,
+        size: 100,
+      };
 
-  const getAppointmentsForDate = (date: Date) => {
-    return mockAppointments.filter((apt) => isSameDay(apt.date, date));
-  };
+      // Apply filters
+      if (searchTerm) params.patientName = searchTerm;
+      if (filterStatus !== "all") params.status = filterStatus;
+      if (filterPhysician !== "all") params.physicianId = Number(filterPhysician);
 
-  const getAppointmentsForSlot = (
-    date: Date,
-    time: string,
-    doctorId?: string
-  ) => {
-    return mockAppointments.filter(
-      (apt) =>
-        isSameDay(apt.date, date) &&
-        apt.time === time &&
-        (!doctorId || apt.doctorId === doctorId)
-    );
-  };
+      // Date filter based on view
+      if (viewMode === "day") {
+        params.appointmentDate = format(selectedDate, "yyyy-MM-dd");
+      } else if (viewMode === "week") {
+        // For week view, we'll filter client-side after fetching
+        // Could optimize by fetching date range in backend
+      }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "scheduled":
-        return "bg-medical-blue text-white";
-      case "checked-in":
-        return "bg-medical-green text-white";
-      case "in-progress":
-        return "bg-medical-orange text-white";
-      case "completed":
-        return "bg-medical-success text-white";
-      case "cancelled":
-        return "bg-destructive text-white";
-      default:
-        return "bg-muted text-muted-foreground";
-    }
-  };
-
-  const filteredAppointments = mockAppointments.filter((apt) => {
-    const matchesDoctor =
-      selectedDoctor === "all" || apt.doctorId === selectedDoctor;
-    const matchesSearch =
-      apt.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      mockDoctors
-        .find((d) => d.id === apt.doctorId)
-        ?.name.toLowerCase()
-        .includes(searchTerm.toLowerCase());
-    return matchesDoctor && matchesSearch;
+      return appointmentService.searchAppointments(params);
+    },
   });
+
+  // Fetch staff/physicians
+  const { data: staffData } = useQuery({
+    queryKey: ["staff"],
+    queryFn: () => staffService.getAllStaff(),
+  });
+
+  // Get physicians from staff
+  const physicians = useMemo(() => {
+    return (staffData || []).filter(
+      (staff) =>
+        staff.roles?.includes(RoleEnum.DOCTOR)
+    );
+  }, [staffData]);
+
+  // Filter and process appointments
+  const appointments = useMemo(() => {
+    let filtered = appointmentsData?.content || [];
+
+    // Filter by type
+    if (filterType !== "all") {
+      filtered = filtered.filter((apt) => apt.appointmentType === filterType);
+    }
+
+    // Filter by urgency
+    if (filterUrgency !== "all") {
+      filtered = filtered.filter((apt) => apt.urgencyLevel === filterUrgency);
+    }
+
+    // Filter by week for week view
+    if (viewMode === "week") {
+      const weekStart = startOfWeek(currentWeek);
+      const weekEnd = endOfWeek(currentWeek);
+      filtered = filtered.filter((apt) => {
+        const aptDate = parseISO(apt.appointmentDate!);
+        return aptDate >= weekStart && aptDate <= weekEnd;
+      });
+    }
+
+    return filtered;
+  }, [appointmentsData, filterType, filterUrgency, viewMode, currentWeek]);
+
+  // Update appointment status mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: number; status: AppointmentStatus }) =>
+      appointmentService.updateAppointmentStatus(id, status),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Appointment status updated successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to update status",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Cancel appointment mutation
+  const cancelAppointmentMutation = useMutation({
+    mutationFn: (id: number) => appointmentService.cancelAppointment(id),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Appointment cancelled successfully",
+      });
+      setAppointmentToDelete(null);
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to cancel appointment",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Helper functions
+  const getAppointmentsForSlot = (date: Date, time: string) => {
+    return appointments.filter((apt) => {
+      const aptDate = parseISO(apt.appointmentDate!);
+      const aptTime = apt.appointmentTime?.substring(0, 5);
+      return isSameDay(aptDate, date) && aptTime === time;
+    });
+  };
+
+  const getAppointmentsForDay = (date: Date) => {
+    return appointments.filter((apt) => {
+      const aptDate = parseISO(apt.appointmentDate!);
+      return isSameDay(aptDate, date);
+    });
+  };
+
+  const getPhysicianName = (physicianId?: number) => {
+    const physician = physicians.find((p) => p.id === physicianId);
+    return physician?.fullName || "Unknown";
+  };
 
   const handleNewAppointment = () => {
     setSelectedAppointment(null);
     setShowAppointmentForm(true);
   };
 
-  const handleEditAppointment = (appointment: any) => {
+  const handleEditAppointment = (appointment: AppointmentResponse) => {
     setSelectedAppointment(appointment);
     setShowAppointmentForm(true);
   };
 
+  const handleViewDetails = (appointment: AppointmentResponse) => {
+    setSelectedAppointment(appointment);
+    setShowDetailsDialog(true);
+  };
+
+  const handleStatusChange = (appointment: AppointmentResponse, newStatus: AppointmentStatus) => {
+    updateStatusMutation.mutate({ id: appointment.id!, status: newStatus });
+  };
+
+  const handleCancelAppointment = (appointment: AppointmentResponse) => {
+    setAppointmentToDelete(appointment);
+  };
+
+  const confirmCancelAppointment = () => {
+    if (appointmentToDelete?.id) {
+      cancelAppointmentMutation.mutate(appointmentToDelete.id);
+    }
+  };
+
+  // Date navigation
+  const goToPreviousDay = () => setSelectedDate(subDays(selectedDate, 1));
+  const goToNextDay = () => setSelectedDate(addDays(selectedDate, 1));
+  const goToToday = () => setSelectedDate(new Date());
+
+  const goToPreviousWeek = () => setCurrentWeek(subWeeks(currentWeek, 1));
+  const goToNextWeek = () => setCurrentWeek(addWeeks(currentWeek, 1));
+
+  // Date picker handlers
+  const handlePickDate = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.value) return;
+    const picked = parseISO(e.target.value);
+    if (viewMode === "week") {
+      setCurrentWeek(startOfWeek(picked));
+    } else {
+      setSelectedDate(picked);
+    }
+  };
+
+  // Week days calculation
+  const weekDays = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => addDays(startOfWeek(currentWeek), i));
+  }, [currentWeek]);
+
+  // Statistics
+  const stats = useMemo(() => {
+    const today = appointments.filter((apt) => {
+      const aptDate = parseISO(apt.appointmentDate!);
+      return isToday(aptDate);
+    });
+
+    return {
+      total: appointments.length,
+      today: today.length,
+      waiting: appointments.filter((apt) => apt.status === AppointmentStatus.Waiting).length,
+      inProgress: appointments.filter(
+        (apt) =>
+          apt.status === AppointmentStatus.InConsultation ||
+          apt.status === AppointmentStatus.InTriage
+      ).length,
+      completed: appointments.filter((apt) => apt.status === AppointmentStatus.Completed).length,
+    };
+  }, [appointments]);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">
-            Appointment Scheduling
-          </h2>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-bold tracking-tight">Appointment Scheduling</h1>
+          <p className="text-muted-foreground mt-1">
             Manage patient appointments and doctor schedules
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Button
-              variant={view === "calendar" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setView("calendar")}
-            >
-              <Calendar className="h-4 w-4" />
-              Calendar
-            </Button>
-            <Button
-              variant={view === "list" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setView("list")}
-            >
-              <Filter className="h-4 w-4" />
-              List
-            </Button>
-          </div>
-
-          <Button
-            onClick={handleNewAppointment}
-            className="bg-medical-primary hover:bg-medical-primary/90"
-          >
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={() => refetchAppointments()}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+          <Button onClick={handleNewAppointment} size="lg">
             <Plus className="h-4 w-4 mr-2" />
             New Appointment
           </Button>
         </div>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search patients or doctors..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
+      {/* Statistics Cards */}
+      <AppointmentStats
+        total={stats.total}
+        today={stats.today}
+        waiting={stats.waiting}
+        inProgress={stats.inProgress}
+        completed={stats.completed}
+      />
+
+      {/* Filters and View Toggle */}
+      <AppointmentFilters
+        searchTerm={searchTerm}
+        filterStatus={filterStatus}
+        filterPhysician={filterPhysician}
+        filterType={filterType}
+        filterUrgency={filterUrgency}
+        physicians={physicians}
+        onSearchChange={setSearchTerm}
+        onStatusChange={setFilterStatus}
+        onPhysicianChange={setFilterPhysician}
+        onTypeChange={setFilterType}
+        onUrgencyChange={setFilterUrgency}
+      />
+
+      {/* View Toggle and Content */}
+      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+        <div className="flex items-center justify-between">
+          <TabsList>
+            <TabsTrigger value="list">
+              <List className="h-4 w-4 mr-2" />
+              List View
+            </TabsTrigger>
+            <TabsTrigger value="day">
+              <Calendar className="h-4 w-4 mr-2" />
+              Day View
+            </TabsTrigger>
+            <TabsTrigger value="week">
+              <Grid className="h-4 w-4 mr-2" />
+              Week View
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Date Navigation */}
+          {viewMode === "day" && (
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={goToPreviousDay}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={goToToday}>
+                Today
+              </Button>
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <input
+                  type="date"
+                  aria-label="Pick date"
+                  value={format(selectedDate, "yyyy-MM-dd")}
+                  onChange={handlePickDate}
+                  className="border rounded px-2 py-1 text-sm"
                 />
               </div>
+              <span className="text-sm font-medium min-w-[150px] text-center">
+                {format(selectedDate, "MMMM d, yyyy")}
+              </span>
+              <Button variant="outline" size="sm" onClick={goToNextDay}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
+          )}
 
-            <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filter by doctor" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Doctors</SelectItem>
-                {mockDoctors.map((doctor) => (
-                  <SelectItem key={doctor.id} value={doctor.id}>
-                    {doctor.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {view === "calendar" ? (
-        /* Calendar View */
-        <div className="space-y-4">
-          {/* Week Navigation */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))}
-                >
-                  Previous Week
-                </Button>
-
-                <h3 className="text-lg font-semibold">
-                  {format(currentWeek, "MMMM yyyy")} - Week of{" "}
-                  {format(currentWeek, "MMM d")}
-                </h3>
-
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))}
-                >
-                  Next Week
-                </Button>
+          {viewMode === "week" && (
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={goToPreviousWeek}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <input
+                  type="date"
+                  aria-label="Pick week date"
+                  value={format(currentWeek, "yyyy-MM-dd")}
+                  onChange={handlePickDate}
+                  className="border rounded px-2 py-1 text-sm"
+                />
               </div>
-            </CardContent>
-          </Card>
+              <span className="text-sm font-medium min-w-[200px] text-center">
+                Week of {format(startOfWeek(currentWeek), "MMM d")} -{" "}
+                {format(endOfWeek(currentWeek), "MMM d, yyyy")}
+              </span>
+              <Button variant="outline" size="sm" onClick={goToNextWeek}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </div>
 
-          {/* Calendar Grid */}
+        {/* List View */}
+        <TabsContent value="list" className="mt-6">
           <Card>
-            <CardContent className="p-0 overflow-x-auto">
-              <div className="min-w-[800px]">
-                {/* Header Row */}
-                <div className="grid grid-cols-8 border-b">
-                  <div className="p-4 font-medium bg-muted">Time</div>
-                  {weekDays.map((day) => (
-                    <div
-                      key={day.toISOString()}
-                      className="p-4 text-center border-l"
-                    >
-                      <div className="font-medium">{format(day, "EEE")}</div>
-                      <div
-                        className={cn(
-                          "text-sm mt-1 w-8 h-8 mx-auto rounded-full flex items-center justify-center",
-                          isSameDay(day, new Date()) &&
-                            "bg-primary text-primary-foreground"
-                        )}
-                      >
-                        {format(day, "d")}
-                      </div>
-                    </div>
+            <CardHeader>
+              <CardTitle>Appointments List</CardTitle>
+              <CardDescription>
+                Showing {appointments.length} appointment(s)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingAppointments ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-24 w-full" />
                   ))}
                 </div>
+              ) : appointments.length === 0 ? (
+                <div className="text-center py-12">
+                  <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-lg font-medium">No appointments found</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Try adjusting your filters or create a new appointment
+                  </p>
+                </div>
+              ) : (
+                <ScrollArea className="h-[600px] pr-4">
+                  <div className="space-y-3">
+                    {appointments.map((appointment) => (
+                      <AppointmentCard
+                        key={appointment.id}
+                        appointment={appointment}
+                        physicianName={getPhysicianName(appointment.physicianId)}
+                        onEdit={handleEditAppointment}
+                        onViewDetails={handleViewDetails}
+                        onStatusChange={handleStatusChange}
+                        onCancel={handleCancelAppointment}
+                      />
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-                {/* Time Slots */}
-                {timeSlots.map((time) => (
-                  <div
-                    key={time}
-                    className="grid grid-cols-8 border-b hover:bg-muted/50"
-                  >
-                    <div className="p-3 text-sm text-muted-foreground bg-muted/50 border-r">
-                      {time}
-                    </div>
-                    {weekDays.map((day) => {
-                      const appointments = getAppointmentsForSlot(day, time);
+        {/* Day View */}
+        <TabsContent value="day" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Day Schedule - {format(selectedDate, "EEEE, MMMM d, yyyy")}</CardTitle>
+              <CardDescription>
+                {getAppointmentsForDay(selectedDate).length} appointment(s) scheduled
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingAppointments ? (
+                <Skeleton className="h-[600px] w-full" />
+              ) : (
+                <ScrollArea className="h-[600px]">
+                  <div className="space-y-2">
+                    {TIME_SLOTS.map((time) => {
+                      const slotAppointments = getAppointmentsForSlot(selectedDate, time);
                       return (
                         <div
-                          key={`${day.toISOString()}-${time}`}
-                          className="p-1 border-l min-h-[60px]"
+                          key={time}
+                          className="flex items-start gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors"
                         >
-                          {appointments.map((apt) => {
-                            const doctor = mockDoctors.find(
-                              (d) => d.id === apt.doctorId
-                            );
+                          <div className="w-20 text-sm font-medium text-muted-foreground pt-1">
+                            {time}
+                          </div>
+                          <div className="flex-1 min-h-[60px]">
+                            {slotAppointments.length > 0 ? (
+                              <div className="space-y-2">
+                                {slotAppointments.map((appointment) => (
+                                  <AppointmentSlotCard
+                                    key={appointment.id}
+                                    appointment={appointment}
+                                    physicianName={getPhysicianName(appointment.physicianId)}
+                                    onEdit={handleEditAppointment}
+                                    onViewDetails={handleViewDetails}
+                                  />
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-sm text-muted-foreground italic">
+                                No appointments
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Week View */}
+        <TabsContent value="week" className="mt-6">
+          <Card>
+            <CardContent className="p-0">
+              {isLoadingAppointments ? (
+                <Skeleton className="h-[600px] w-full" />
+              ) : (
+                <div className="overflow-x-auto">
+                  <div className="min-w-[900px]">
+                    {/* Header Row */}
+                    <div className="grid grid-cols-8 border-b bg-muted/50">
+                      <div className="p-4 font-semibold text-sm">Time</div>
+                      {weekDays.map((day) => (
+                        <div
+                          key={day.toISOString()}
+                          className={cn(
+                            "p-4 text-center border-l",
+                            isToday(day) && "bg-primary/10"
+                          )}
+                        >
+                          <div className="font-semibold text-sm">{format(day, "EEE")}</div>
+                          <div
+                            className={cn(
+                              "text-lg mt-1",
+                              isToday(day) && "text-primary font-bold"
+                            )}
+                          >
+                            {format(day, "d")}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {getAppointmentsForDay(day).length} apt
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Time Slots */}
+                    <ScrollArea className="h-[550px]">
+                      {TIME_SLOTS.map((time) => (
+                        <div
+                          key={time}
+                          className="grid grid-cols-8 border-b hover:bg-muted/30"
+                        >
+                          <div className="p-3 text-sm font-medium text-muted-foreground bg-muted/30">
+                            {time}
+                          </div>
+                          {weekDays.map((day) => {
+                            const slotAppointments = getAppointmentsForSlot(day, time);
                             return (
                               <div
-                                key={apt.id}
-                                className={cn(
-                                  "p-2 rounded text-xs cursor-pointer mb-1 transition-colors",
-                                  getStatusColor(apt.status)
-                                )}
-                                onClick={() => handleEditAppointment(apt)}
+                                key={`${day.toISOString()}-${time}`}
+                                className="p-2 border-l min-h-[80px]"
                               >
-                                <div className="font-medium truncate">
-                                  {apt.patientName}
-                                </div>
-                                <div className="truncate opacity-90">
-                                  {doctor?.name}
-                                </div>
-                                <div className="flex items-center gap-1 opacity-90">
-                                  <Clock className="h-3 w-3" />
-                                  {apt.duration}m
+                                <div className="space-y-1">
+                                  {slotAppointments.map((appointment) => (
+                                    <AppointmentWeekCard
+                                      key={appointment.id}
+                                      appointment={appointment}
+                                      physicianName={getPhysicianName(appointment.physicianId)}
+                                      onClick={() => handleViewDetails(appointment)}
+                                    />
+                                  ))}
                                 </div>
                               </div>
                             );
                           })}
                         </div>
-                      );
-                    })}
+                      ))}
+                    </ScrollArea>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </CardContent>
           </Card>
-        </div>
-      ) : (
-        /* List View */
-        <Card>
-          <CardHeader>
-            <CardTitle>Appointment List</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {filteredAppointments.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No appointments found matching your criteria.
-                </div>
-              ) : (
-                filteredAppointments.map((apt) => {
-                  const doctor = mockDoctors.find((d) => d.id === apt.doctorId);
-                  return (
-                    <div
-                      key={apt.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                      onClick={() => handleEditAppointment(apt)}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="flex flex-col">
-                          <div className="font-medium">{apt.patientName}</div>
-                          <div className="text-sm text-muted-foreground flex items-center gap-2">
-                            <User className="h-3 w-3" />
-                            {doctor?.name}
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col">
-                          <div className="text-sm">
-                            {format(apt.date, "MMM d, yyyy")}
-                          </div>
-                          <div className="text-sm text-muted-foreground flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {apt.time} ({apt.duration}m)
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <Badge className={getStatusColor(apt.status)}>
-                          {apt.status}
-                        </Badge>
-                        <Badge variant="outline">{apt.type}</Badge>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        </TabsContent>
+      </Tabs>
 
       {/* Appointment Form Dialog */}
       {showAppointmentForm && (
-        <AppointmentForm
-          appointment={selectedAppointment}
-          onClose={() => setShowAppointmentForm(false)}
-          onSave={(appointmentData) => {
-            // Handle save logic here
-            console.log("Saving appointment:", appointmentData);
+        <AppointmentFormDialog
+          open={showAppointmentForm}
+          onClose={() => {
             setShowAppointmentForm(false);
+            setSelectedAppointment(null);
           }}
+          onSuccess={() => {
+            refetchAppointments();
+          }}
+          editData={selectedAppointment}
         />
       )}
+
+      {/* Details Dialog */}
+      {showDetailsDialog && selectedAppointment && (
+        <AppointmentDetailsDialog
+          appointment={selectedAppointment}
+          physicianName={getPhysicianName(selectedAppointment.physicianId)}
+          open={showDetailsDialog}
+          onClose={() => {
+            setShowDetailsDialog(false);
+            setSelectedAppointment(null);
+          }}
+          onEdit={() => {
+            setShowDetailsDialog(false);
+            setShowAppointmentForm(true);
+          }}
+          onStatusChange={(status) => handleStatusChange(selectedAppointment, status)}
+        />
+      )}
+
+      {/* Cancel Confirmation Dialog */}
+      <Dialog
+        open={!!appointmentToDelete}
+        onOpenChange={(open) => !open && setAppointmentToDelete(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Appointment</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel this appointment? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAppointmentToDelete(null)}>
+              No, Keep It
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmCancelAppointment}
+              disabled={cancelAppointmentMutation.isPending}
+            >
+              {cancelAppointmentMutation.isPending ? "Cancelling..." : "Yes, Cancel"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
