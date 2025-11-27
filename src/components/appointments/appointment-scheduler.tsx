@@ -218,10 +218,10 @@ const AppointmentScheduler: React.FC = () => {
     });
   };
 
-  const getPhysicianName = (physicianId?: number) => {
-    const physician = physicians.find((p) => p.id === physicianId);
-    return physician?.fullName || "Unknown";
-  };
+  // const getPhysicianName = (physicianId?: number) => {
+  //   const physician = physicians.find((p) => p.id === physicianId);
+  //   return physician?.fullName || "Unknown";
+  // };
 
   const handleNewAppointment = () => {
     setSelectedAppointment(null);
@@ -289,8 +289,7 @@ const AppointmentScheduler: React.FC = () => {
       waiting: appointments.filter((apt) => apt.status === AppointmentStatus.Waiting).length,
       inProgress: appointments.filter(
         (apt) =>
-          apt.status === AppointmentStatus.InConsultation ||
-          apt.status === AppointmentStatus.InTriage
+          apt.status === AppointmentStatus.InConsultation
       ).length,
       completed: appointments.filter((apt) => apt.status === AppointmentStatus.Completed).length,
     };
@@ -446,7 +445,7 @@ const AppointmentScheduler: React.FC = () => {
                       <AppointmentCard
                         key={appointment.id}
                         appointment={appointment}
-                        physicianName={getPhysicianName(appointment.physicianId)}
+                        physicianName={appointment.physicianName}
                         onEdit={handleEditAppointment}
                         onViewDetails={handleViewDetails}
                         onStatusChange={handleStatusChange}
@@ -492,7 +491,7 @@ const AppointmentScheduler: React.FC = () => {
                                   <AppointmentSlotCard
                                     key={appointment.id}
                                     appointment={appointment}
-                                    physicianName={getPhysicianName(appointment.physicianId)}
+                                    physicianName={appointment.physicianName}
                                     onEdit={handleEditAppointment}
                                     onViewDetails={handleViewDetails}
                                   />
@@ -572,7 +571,7 @@ const AppointmentScheduler: React.FC = () => {
                                     <AppointmentWeekCard
                                       key={appointment.id}
                                       appointment={appointment}
-                                      physicianName={getPhysicianName(appointment.physicianId)}
+                                      physicianName={appointment.physicianName}
                                       onClick={() => handleViewDetails(appointment)}
                                     />
                                   ))}
@@ -610,7 +609,7 @@ const AppointmentScheduler: React.FC = () => {
       {showDetailsDialog && selectedAppointment && (
         <AppointmentDetailsDialog
           appointment={selectedAppointment}
-          physicianName={getPhysicianName(selectedAppointment.physicianId)}
+          physicianName={selectedAppointment.physicianName}
           open={showDetailsDialog}
           onClose={() => {
             setShowDetailsDialog(false);

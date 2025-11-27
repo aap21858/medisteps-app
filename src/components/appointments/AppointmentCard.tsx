@@ -1,5 +1,6 @@
 import React from "react";
 import { parseISO, isToday, isTomorrow, format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import {
   User,
   Calendar,
@@ -9,6 +10,7 @@ import {
   Edit,
   XCircle,
   MoreVertical,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -44,11 +46,6 @@ const STATUS_CONFIG: Record<string, { color: string; icon: React.ReactNode; labe
     color: "bg-yellow-500 text-white",
     icon: <FileText className="h-3 w-3" />,
     label: "Waiting",
-  },
-  [AppointmentStatus.InTriage]: {
-    color: "bg-purple-500 text-white",
-    icon: <FileText className="h-3 w-3" />,
-    label: "In Triage",
   },
   [AppointmentStatus.InConsultation]: {
     color: "bg-indigo-600 text-white",
@@ -129,6 +126,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
   onStatusChange,
   onCancel,
 }) => {
+  const navigate = useNavigate();
   const aptDate = parseISO(appointment.appointmentDate!);
   const statusConfig = STATUS_CONFIG[appointment.status || AppointmentStatus.Draft];
   const urgencyConfig = URGENCY_CONFIG[appointment.urgencyLevel || UrgencyLevel.Normal];
@@ -137,6 +135,13 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
     if (isToday(aptDate)) return "Today";
     if (isTomorrow(aptDate)) return "Tomorrow";
     return format(aptDate, "MMM d, yyyy");
+  };
+
+  const handlePatientClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (appointment.patientId) {
+      window.open(`/patients/${appointment.patientId}`, '_blank');
+    }
   };
 
   return (
@@ -149,7 +154,13 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-semibold text-lg">{appointment.patientName}</h3>
+                <h3
+                  className="font-semibold text-lg hover:text-primary cursor-pointer hover:underline transition-colors flex items-center gap-1"
+                  onClick={handlePatientClick}
+                >
+                  {appointment.patientName}
+                  <ExternalLink className="h-3 w-3" />
+                </h3>
                 {appointment.urgencyLevel !== UrgencyLevel.Normal && (
                   <Badge variant="outline" className={cn("text-xs", urgencyConfig.color)}>
                     {urgencyConfig.label}

@@ -8,7 +8,6 @@ All URIs are relative to *http://localhost:8080*
 |[**cancelAppointment**](#cancelappointment) | **DELETE** /api/appointments/{id} | Cancel appointment|
 |[**createAppointment**](#createappointment) | **POST** /api/appointments | Create new appointment|
 |[**createInvestigationOrder**](#createinvestigationorder) | **POST** /api/appointments/{appointmentId}/investigations | Create investigation order|
-|[**createOrUpdateTriage**](#createorupdatetriage) | **POST** /api/appointments/{appointmentId}/triage | Create or update triage data|
 |[**createPrescription**](#createprescription) | **POST** /api/appointments/{appointmentId}/prescriptions | Create prescription|
 |[**createReferral**](#createreferral) | **POST** /api/appointments/{appointmentId}/refer | Create referral|
 |[**dischargePatient**](#dischargepatient) | **POST** /api/appointments/{appointmentId}/discharge | Discharge patient|
@@ -18,7 +17,6 @@ All URIs are relative to *http://localhost:8080*
 |[**getInvestigationsByAppointment**](#getinvestigationsbyappointment) | **GET** /api/appointments/{appointmentId}/investigations | Get investigation orders|
 |[**getPrescriptionById**](#getprescriptionbyid) | **GET** /api/prescriptions/{id} | Get prescription by ID|
 |[**getPrescriptionsByAppointment**](#getprescriptionsbyappointment) | **GET** /api/appointments/{appointmentId}/prescriptions | Get prescriptions|
-|[**getTriageByAppointment**](#gettriagebyappointment) | **GET** /api/appointments/{appointmentId}/triage | Get triage data|
 |[**getVitalsByAppointment**](#getvitalsbyappointment) | **GET** /api/appointments/{appointmentId}/vitals | Get vitals|
 |[**recordExamination**](#recordexamination) | **POST** /api/appointments/{appointmentId}/examination | Record examination|
 |[**recordVitals**](#recordvitals) | **POST** /api/appointments/{appointmentId}/vitals | Record vitals|
@@ -243,62 +241,6 @@ const { status, data } = await apiInstance.createInvestigationOrder(
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**201** | Investigation ordered successfully |  -  |
-|**404** | Appointment not found |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **createOrUpdateTriage**
-> TriageResponse createOrUpdateTriage(triageRequest)
-
-Record pre-consultation assessment by nurse or junior doctor
-
-### Example
-
-```typescript
-import {
-    AppointmentManagementApi,
-    Configuration,
-    TriageRequest
-} from './api';
-
-const configuration = new Configuration();
-const apiInstance = new AppointmentManagementApi(configuration);
-
-let appointmentId: number; // (default to undefined)
-let triageRequest: TriageRequest; //
-
-const { status, data } = await apiInstance.createOrUpdateTriage(
-    appointmentId,
-    triageRequest
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **triageRequest** | **TriageRequest**|  | |
-| **appointmentId** | [**number**] |  | defaults to undefined|
-
-
-### Return type
-
-**TriageResponse**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**201** | Triage data recorded successfully |  -  |
 |**404** | Appointment not found |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -786,58 +728,6 @@ const { status, data } = await apiInstance.getPrescriptionsByAppointment(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **getTriageByAppointment**
-> TriageResponse getTriageByAppointment()
-
-Retrieve triage data for an appointment
-
-### Example
-
-```typescript
-import {
-    AppointmentManagementApi,
-    Configuration
-} from './api';
-
-const configuration = new Configuration();
-const apiInstance = new AppointmentManagementApi(configuration);
-
-let appointmentId: number; // (default to undefined)
-
-const { status, data } = await apiInstance.getTriageByAppointment(
-    appointmentId
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **appointmentId** | [**number**] |  | defaults to undefined|
-
-
-### Return type
-
-**TriageResponse**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Triage data retrieved |  -  |
-|**404** | Triage data not found |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
 # **getVitalsByAppointment**
 > Array<VitalsResponse> getVitalsByAppointment()
 
@@ -948,7 +838,7 @@ const { status, data } = await apiInstance.recordExamination(
 # **recordVitals**
 > VitalsResponse recordVitals(vitalsRequest)
 
-Record patient vitals during triage
+Record patient vitals before examination
 
 ### Example
 

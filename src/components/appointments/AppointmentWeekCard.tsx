@@ -22,11 +22,6 @@ const STATUS_CONFIG: Record<string, { color: string; icon: React.ReactNode; labe
     icon: <Timer className="h-3 w-3" />,
     label: "Waiting",
   },
-  [AppointmentStatus.InTriage]: {
-    color: "bg-purple-500 text-white",
-    icon: <Activity className="h-3 w-3" />,
-    label: "In Triage",
-  },
   [AppointmentStatus.InConsultation]: {
     color: "bg-indigo-600 text-white",
     icon: <Stethoscope className="h-3 w-3" />,

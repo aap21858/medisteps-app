@@ -5,7 +5,7 @@ All URIs are relative to *http://localhost:8080*
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
 |[**deleteStaff**](#deletestaff) | **DELETE** /api/staff/{id} | Delete staff member|
-|[**getAllStaff**](#getallstaff) | **GET** /api/staff | Get all staff members|
+|[**getAllStaff**](#getallstaff) | **GET** /api/staff/ | Get all staff members|
 |[**getStaffById**](#getstaffbyid) | **GET** /api/staff/{id} | Get staff by ID|
 |[**registerStaff**](#registerstaff) | **POST** /api/admin/register | Register new staff member|
 |[**updateStaff**](#updatestaff) | **PUT** /api/staff/{id} | Update staff member|

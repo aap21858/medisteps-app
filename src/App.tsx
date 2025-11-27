@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import NotFound from "./pages/NotFound";
+import PatientDetails from "./pages/PatientDetails";
 import PrivateRoute from "./lib/privateRouter";
 import { SetPassword } from "./components/staff/set-password";
 
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route element={<PrivateRoute />}>
              <Route path="/" element={<Index />} />
+             <Route path="/patients/:patientId" element={<PatientDetails />} />
              <Route path="*" element={<NotFound />} />
             </Route>          
             {/* <Route path="/" element={<Index />} />

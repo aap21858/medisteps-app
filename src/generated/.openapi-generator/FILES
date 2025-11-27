@@ -76,8 +76,6 @@ docs/StaffResponse.md
 docs/StaffRole.md
 docs/StaffStatus.md
 docs/StaffUpdateRequest.md
-docs/TriageRequest.md
-docs/TriageResponse.md
 docs/UpdateAppointmentStatusRequest.md
 docs/UpdatePrescriptionStatusRequest.md
 docs/UpdateStaff200Response.md
@@ -149,8 +147,6 @@ models/staff-response.ts
 models/staff-role.ts
 models/staff-status.ts
 models/staff-update-request.ts
-models/triage-request.ts
-models/triage-response.ts
 models/update-appointment-status-request.ts
 models/update-prescription-status-request.ts
 models/update-staff200-response.ts

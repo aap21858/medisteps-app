@@ -9,8 +9,6 @@
 
 * `Waiting` (value: `'WAITING'`)
 
-* `InTriage` (value: `'IN_TRIAGE'`)
-
 * `InConsultation` (value: `'IN_CONSULTATION'`)
 
 * `ToInvoice` (value: `'TO_INVOICE'`)

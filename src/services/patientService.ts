@@ -1,7 +1,7 @@
 import apiClient from '@/lib/apiClient';
 import { PatientManagementApi } from '@/generated/apis/patient-management-api';
 import { Configuration } from '@/generated/configuration';
-import type { PatientPageResponse, PatientResponse } from '@/generated/models';
+import type { PatientPageResponse, PatientResponse, MedicalHistoryRequest, MedicalHistoryResponse } from '@/generated/models';
 
 export class PatientService {
   private api: PatientManagementApi;
@@ -20,6 +20,16 @@ export class PatientService {
 
   async getPatientById(id: number): Promise<PatientResponse> {
     const response = await this.api.getPatientById(id);
+    return response.data;
+  }
+
+  async getPatientMedicalHistory(patientId: number): Promise<MedicalHistoryResponse> {
+    const response = await this.api.getPatientMedicalHistory(patientId);
+    return response.data;
+  }
+
+  async updatePatientMedicalHistory(patientId: number, medicalHistory: MedicalHistoryRequest): Promise<MedicalHistoryResponse> {
+    const response = await this.api.updatePatientMedicalHistory(patientId, medicalHistory);
     return response.data;
   }
 }

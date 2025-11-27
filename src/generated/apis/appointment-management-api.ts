@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Healix Clinic Management API
- * REST API for clinic management system with EHR support for Maharashtra small to mid-sized clinics.  ## Features - Patient registration and management - Emergency contact management - Insurance details tracking - Medical history records - Appointment scheduling and management - Triage, vitals, and examination - Prescription and investigation management - IPD/OPD workflow 
+ * REST API for clinic management system with EHR support for Maharashtra small to mid-sized clinics.  ## Features - Patient registration and management - Emergency contact management - Insurance details tracking - Medical history records - Appointment scheduling and management - Vitals recording and examination - Prescription and investigation management - IPD/OPD workflow 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@healix.com
@@ -53,10 +53,6 @@ import type { PrescriptionRequest } from '../models';
 import type { PrescriptionResponse } from '../models';
 // @ts-ignore
 import type { ReferralRequest } from '../models';
-// @ts-ignore
-import type { TriageRequest } from '../models';
-// @ts-ignore
-import type { TriageResponse } from '../models';
 // @ts-ignore
 import type { UpdateAppointmentStatusRequest } from '../models';
 // @ts-ignore
@@ -232,50 +228,6 @@ export const AppointmentManagementApiAxiosParamCreator = function (configuration
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(investigationOrderRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Record pre-consultation assessment by nurse or junior doctor
-         * @summary Create or update triage data
-         * @param {number} appointmentId 
-         * @param {TriageRequest} triageRequest 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        createOrUpdateTriage: async (appointmentId: number, triageRequest: TriageRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'appointmentId' is not null or undefined
-            assertParamExists('createOrUpdateTriage', 'appointmentId', appointmentId)
-            // verify required parameter 'triageRequest' is not null or undefined
-            assertParamExists('createOrUpdateTriage', 'triageRequest', triageRequest)
-            const localVarPath = `/api/appointments/{appointmentId}/triage`
-                .replace(`{${"appointmentId"}}`, encodeURIComponent(String(appointmentId)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication bearerAuth required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(triageRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -654,44 +606,6 @@ export const AppointmentManagementApiAxiosParamCreator = function (configuration
             };
         },
         /**
-         * Retrieve triage data for an appointment
-         * @summary Get triage data
-         * @param {number} appointmentId 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getTriageByAppointment: async (appointmentId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'appointmentId' is not null or undefined
-            assertParamExists('getTriageByAppointment', 'appointmentId', appointmentId)
-            const localVarPath = `/api/appointments/{appointmentId}/triage`
-                .replace(`{${"appointmentId"}}`, encodeURIComponent(String(appointmentId)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication bearerAuth required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * Retrieve all vitals records for an appointment
          * @summary Get vitals
          * @param {number} appointmentId 
@@ -774,7 +688,7 @@ export const AppointmentManagementApiAxiosParamCreator = function (configuration
             };
         },
         /**
-         * Record patient vitals during triage
+         * Record patient vitals before examination
          * @summary Record vitals
          * @param {number} appointmentId 
          * @param {VitalsRequest} vitalsRequest 
@@ -1133,20 +1047,6 @@ export const AppointmentManagementApiFp = function(configuration?: Configuration
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Record pre-consultation assessment by nurse or junior doctor
-         * @summary Create or update triage data
-         * @param {number} appointmentId 
-         * @param {TriageRequest} triageRequest 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async createOrUpdateTriage(appointmentId: number, triageRequest: TriageRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TriageResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.createOrUpdateTriage(appointmentId, triageRequest, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['AppointmentManagementApi.createOrUpdateTriage']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
          * Create prescription with medication items
          * @summary Create prescription
          * @param {number} appointmentId 
@@ -1269,19 +1169,6 @@ export const AppointmentManagementApiFp = function(configuration?: Configuration
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Retrieve triage data for an appointment
-         * @summary Get triage data
-         * @param {number} appointmentId 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async getTriageByAppointment(appointmentId: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TriageResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getTriageByAppointment(appointmentId, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['AppointmentManagementApi.getTriageByAppointment']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
          * Retrieve all vitals records for an appointment
          * @summary Get vitals
          * @param {number} appointmentId 
@@ -1309,7 +1196,7 @@ export const AppointmentManagementApiFp = function(configuration?: Configuration
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Record patient vitals during triage
+         * Record patient vitals before examination
          * @summary Record vitals
          * @param {number} appointmentId 
          * @param {VitalsRequest} vitalsRequest 
@@ -1450,17 +1337,6 @@ export const AppointmentManagementApiFactory = function (configuration?: Configu
             return localVarFp.createInvestigationOrder(appointmentId, investigationOrderRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Record pre-consultation assessment by nurse or junior doctor
-         * @summary Create or update triage data
-         * @param {number} appointmentId 
-         * @param {TriageRequest} triageRequest 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        createOrUpdateTriage(appointmentId: number, triageRequest: TriageRequest, options?: RawAxiosRequestConfig): AxiosPromise<TriageResponse> {
-            return localVarFp.createOrUpdateTriage(appointmentId, triageRequest, options).then((request) => request(axios, basePath));
-        },
-        /**
          * Create prescription with medication items
          * @summary Create prescription
          * @param {number} appointmentId 
@@ -1556,16 +1432,6 @@ export const AppointmentManagementApiFactory = function (configuration?: Configu
             return localVarFp.getPrescriptionsByAppointment(appointmentId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Retrieve triage data for an appointment
-         * @summary Get triage data
-         * @param {number} appointmentId 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getTriageByAppointment(appointmentId: number, options?: RawAxiosRequestConfig): AxiosPromise<TriageResponse> {
-            return localVarFp.getTriageByAppointment(appointmentId, options).then((request) => request(axios, basePath));
-        },
-        /**
          * Retrieve all vitals records for an appointment
          * @summary Get vitals
          * @param {number} appointmentId 
@@ -1587,7 +1453,7 @@ export const AppointmentManagementApiFactory = function (configuration?: Configu
             return localVarFp.recordExamination(appointmentId, examinationRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Record patient vitals during triage
+         * Record patient vitals before examination
          * @summary Record vitals
          * @param {number} appointmentId 
          * @param {VitalsRequest} vitalsRequest 
@@ -1712,18 +1578,6 @@ export class AppointmentManagementApi extends BaseAPI {
     }
 
     /**
-     * Record pre-consultation assessment by nurse or junior doctor
-     * @summary Create or update triage data
-     * @param {number} appointmentId 
-     * @param {TriageRequest} triageRequest 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public createOrUpdateTriage(appointmentId: number, triageRequest: TriageRequest, options?: RawAxiosRequestConfig) {
-        return AppointmentManagementApiFp(this.configuration).createOrUpdateTriage(appointmentId, triageRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
      * Create prescription with medication items
      * @summary Create prescription
      * @param {number} appointmentId 
@@ -1828,17 +1682,6 @@ export class AppointmentManagementApi extends BaseAPI {
     }
 
     /**
-     * Retrieve triage data for an appointment
-     * @summary Get triage data
-     * @param {number} appointmentId 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public getTriageByAppointment(appointmentId: number, options?: RawAxiosRequestConfig) {
-        return AppointmentManagementApiFp(this.configuration).getTriageByAppointment(appointmentId, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
      * Retrieve all vitals records for an appointment
      * @summary Get vitals
      * @param {number} appointmentId 
@@ -1862,7 +1705,7 @@ export class AppointmentManagementApi extends BaseAPI {
     }
 
     /**
-     * Record patient vitals during triage
+     * Record patient vitals before examination
      * @summary Record vitals
      * @param {number} appointmentId 
      * @param {VitalsRequest} vitalsRequest 

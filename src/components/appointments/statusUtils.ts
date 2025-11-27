@@ -5,17 +5,14 @@ const ALLOWED_TRANSITIONS: Record<AppointmentStatus, AppointmentStatus[]> = {
   [AppointmentStatus.Draft]: [AppointmentStatus.Confirmed, AppointmentStatus.Cancelled],
   [AppointmentStatus.Confirmed]: [
     AppointmentStatus.Waiting,
-    AppointmentStatus.InTriage,
     AppointmentStatus.Cancelled,
     AppointmentStatus.NoShow,
   ],
   [AppointmentStatus.Waiting]: [
-    AppointmentStatus.InTriage,
     AppointmentStatus.InConsultation,
     AppointmentStatus.Cancelled,
     AppointmentStatus.NoShow,
   ],
-  [AppointmentStatus.InTriage]: [AppointmentStatus.InConsultation, AppointmentStatus.Cancelled],
   [AppointmentStatus.InConsultation]: [
     AppointmentStatus.ToInvoice,
     AppointmentStatus.Completed,

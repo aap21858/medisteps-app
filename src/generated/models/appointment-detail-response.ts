@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Healix Clinic Management API
- * REST API for clinic management system with EHR support for Maharashtra small to mid-sized clinics.  ## Features - Patient registration and management - Emergency contact management - Insurance details tracking - Medical history records - Appointment scheduling and management - Triage, vitals, and examination - Prescription and investigation management - IPD/OPD workflow 
+ * REST API for clinic management system with EHR support for Maharashtra small to mid-sized clinics.  ## Features - Patient registration and management - Emergency contact management - Insurance details tracking - Medical history records - Appointment scheduling and management - Vitals recording and examination - Prescription and investigation management - IPD/OPD workflow 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@healix.com
@@ -34,9 +34,6 @@ import type { InvestigationOrderResponse } from './investigation-order-response'
 // May contain unused imports in some cases
 // @ts-ignore
 import type { PrescriptionResponse } from './prescription-response';
-// May contain unused imports in some cases
-// @ts-ignore
-import type { TriageResponse } from './triage-response';
 // May contain unused imports in some cases
 // @ts-ignore
 import type { UrgencyLevel } from './urgency-level';

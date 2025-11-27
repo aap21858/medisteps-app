@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Healix Clinic Management API
- * REST API for clinic management system with EHR support for Maharashtra small to mid-sized clinics.  ## Features - Patient registration and management - Emergency contact management - Insurance details tracking - Medical history records - Appointment scheduling and management - Triage, vitals, and examination - Prescription and investigation management - IPD/OPD workflow 
+ * REST API for clinic management system with EHR support for Maharashtra small to mid-sized clinics.  ## Features - Patient registration and management - Emergency contact management - Insurance details tracking - Medical history records - Appointment scheduling and management - Vitals recording and examination - Prescription and investigation management - IPD/OPD workflow 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@healix.com
@@ -27,6 +27,10 @@ import type { BatchPatientResponse } from '../models';
 import type { CsvUploadResponse } from '../models';
 // @ts-ignore
 import type { ErrorResponse } from '../models';
+// @ts-ignore
+import type { MedicalHistoryRequest } from '../models';
+// @ts-ignore
+import type { MedicalHistoryResponse } from '../models';
 // @ts-ignore
 import type { PatientPageResponse } from '../models';
 // @ts-ignore
@@ -276,6 +280,44 @@ export const PatientManagementApiAxiosParamCreator = function (configuration?: C
             };
         },
         /**
+         * Retrieve medical history for a patient
+         * @summary Get patient medical history
+         * @param {number} id Patient database ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getPatientMedicalHistory: async (id: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('getPatientMedicalHistory', 'id', id)
+            const localVarPath = `/api/patients/{id}/medical-history`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Register one or more patients with personal, emergency, insurance, and medical details
          * @summary Register multiple patients (batch registration)
          * @param {Array<PatientRegistrationRequest>} patientRegistrationRequest 
@@ -404,6 +446,50 @@ export const PatientManagementApiAxiosParamCreator = function (configuration?: C
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(patientRegistrationRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Update medical history for a patient (only accessible by authorized medical staff)
+         * @summary Update patient medical history
+         * @param {number} id Patient database ID
+         * @param {MedicalHistoryRequest} medicalHistoryRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updatePatientMedicalHistory: async (id: number, medicalHistoryRequest: MedicalHistoryRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('updatePatientMedicalHistory', 'id', id)
+            // verify required parameter 'medicalHistoryRequest' is not null or undefined
+            assertParamExists('updatePatientMedicalHistory', 'medicalHistoryRequest', medicalHistoryRequest)
+            const localVarPath = `/api/patients/{id}/medical-history`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(medicalHistoryRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -544,6 +630,19 @@ export const PatientManagementApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Retrieve medical history for a patient
+         * @summary Get patient medical history
+         * @param {number} id Patient database ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getPatientMedicalHistory(id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MedicalHistoryResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getPatientMedicalHistory(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['PatientManagementApi.getPatientMedicalHistory']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Register one or more patients with personal, emergency, insurance, and medical details
          * @summary Register multiple patients (batch registration)
          * @param {Array<PatientRegistrationRequest>} patientRegistrationRequest 
@@ -583,6 +682,20 @@ export const PatientManagementApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.updatePatient(id, patientRegistrationRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['PatientManagementApi.updatePatient']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Update medical history for a patient (only accessible by authorized medical staff)
+         * @summary Update patient medical history
+         * @param {number} id Patient database ID
+         * @param {MedicalHistoryRequest} medicalHistoryRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updatePatientMedicalHistory(id: number, medicalHistoryRequest: MedicalHistoryRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MedicalHistoryResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updatePatientMedicalHistory(id, medicalHistoryRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['PatientManagementApi.updatePatientMedicalHistory']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -669,6 +782,16 @@ export const PatientManagementApiFactory = function (configuration?: Configurati
             return localVarFp.getPatientByPatientId(patientId, options).then((request) => request(axios, basePath));
         },
         /**
+         * Retrieve medical history for a patient
+         * @summary Get patient medical history
+         * @param {number} id Patient database ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getPatientMedicalHistory(id: number, options?: RawAxiosRequestConfig): AxiosPromise<MedicalHistoryResponse> {
+            return localVarFp.getPatientMedicalHistory(id, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Register one or more patients with personal, emergency, insurance, and medical details
          * @summary Register multiple patients (batch registration)
          * @param {Array<PatientRegistrationRequest>} patientRegistrationRequest 
@@ -700,6 +823,17 @@ export const PatientManagementApiFactory = function (configuration?: Configurati
          */
         updatePatient(id: number, patientRegistrationRequest: PatientRegistrationRequest, options?: RawAxiosRequestConfig): AxiosPromise<PatientResponse> {
             return localVarFp.updatePatient(id, patientRegistrationRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Update medical history for a patient (only accessible by authorized medical staff)
+         * @summary Update patient medical history
+         * @param {number} id Patient database ID
+         * @param {MedicalHistoryRequest} medicalHistoryRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updatePatientMedicalHistory(id: number, medicalHistoryRequest: MedicalHistoryRequest, options?: RawAxiosRequestConfig): AxiosPromise<MedicalHistoryResponse> {
+            return localVarFp.updatePatientMedicalHistory(id, medicalHistoryRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Upload a CSV file containing patient details for batch registration.  **CSV Format:** - First row must be headers (case-insensitive) - Required columns: firstName, lastName, dateOfBirth, gender, mobileNumber, city, pinCode - Optional columns: bloodGroup, aadharNumber, emailId, addressLine1, district, state  **Example CSV:** ``` firstName,lastName,dateOfBirth,gender,bloodGroup,mobileNumber,emailId,city,pinCode Rahul,Patil,1985-03-15,MALE,O+,9876543210,rahul@gmail.com,Sangli,416416 Priya,Sharma,1990-07-22,FEMALE,A+,9876543211,priya@gmail.com,Sangli,416416 ``` 
@@ -786,6 +920,17 @@ export class PatientManagementApi extends BaseAPI {
     }
 
     /**
+     * Retrieve medical history for a patient
+     * @summary Get patient medical history
+     * @param {number} id Patient database ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getPatientMedicalHistory(id: number, options?: RawAxiosRequestConfig) {
+        return PatientManagementApiFp(this.configuration).getPatientMedicalHistory(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Register one or more patients with personal, emergency, insurance, and medical details
      * @summary Register multiple patients (batch registration)
      * @param {Array<PatientRegistrationRequest>} patientRegistrationRequest 
@@ -819,6 +964,18 @@ export class PatientManagementApi extends BaseAPI {
      */
     public updatePatient(id: number, patientRegistrationRequest: PatientRegistrationRequest, options?: RawAxiosRequestConfig) {
         return PatientManagementApiFp(this.configuration).updatePatient(id, patientRegistrationRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Update medical history for a patient (only accessible by authorized medical staff)
+     * @summary Update patient medical history
+     * @param {number} id Patient database ID
+     * @param {MedicalHistoryRequest} medicalHistoryRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public updatePatientMedicalHistory(id: number, medicalHistoryRequest: MedicalHistoryRequest, options?: RawAxiosRequestConfig) {
+        return PatientManagementApiFp(this.configuration).updatePatientMedicalHistory(id, medicalHistoryRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

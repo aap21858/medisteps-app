@@ -25,7 +25,6 @@ Name | Type | Description | Notes
 **createdAt** | **string** |  | [optional] [default to undefined]
 **updatedAt** | **string** |  | [optional] [default to undefined]
 **patient** | [**AppointmentDetailResponseAllOfPatient**](AppointmentDetailResponseAllOfPatient.md) |  | [optional] [default to undefined]
-**triage** | [**TriageResponse**](TriageResponse.md) |  | [optional] [default to undefined]
 **vitals** | [**Array&lt;VitalsResponse&gt;**](VitalsResponse.md) |  | [optional] [default to undefined]
 **examination** | [**ExaminationResponse**](ExaminationResponse.md) |  | [optional] [default to undefined]
 **prescriptions** | [**Array&lt;PrescriptionResponse&gt;**](PrescriptionResponse.md) |  | [optional] [default to undefined]
@@ -57,7 +56,6 @@ const instance: AppointmentDetailResponse = {
     createdAt,
     updatedAt,
     patient,
-    triage,
     vitals,
     examination,
     prescriptions,

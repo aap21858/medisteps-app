@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Healix Clinic Management API
- * REST API for clinic management system with EHR support for Maharashtra small to mid-sized clinics.  ## Features - Patient registration and management - Emergency contact management - Insurance details tracking - Medical history records - Appointment scheduling and management - Triage, vitals, and examination - Prescription and investigation management - IPD/OPD workflow 
+ * REST API for clinic management system with EHR support for Maharashtra small to mid-sized clinics.  ## Features - Patient registration and management - Emergency contact management - Insurance details tracking - Medical history records - Appointment scheduling and management - Vitals recording and examination - Prescription and investigation management - IPD/OPD workflow 
  *
  * The version of the OpenAPI document: 1.0.0
  * Contact: support@healix.com
@@ -15,6 +15,18 @@
 
 
 export interface ExaminationRequest {
+    /**
+     * Can be refined by doctor from appointment\'s chief complaint
+     */
+    'chiefComplaint'?: string;
+    /**
+     * Detailed narrative of current problem
+     */
+    'historyPresentIllness'?: string;
+    /**
+     * Current symptoms for this visit
+     */
+    'symptoms'?: string;
     'generalAppearance'?: string;
     'cardiovascularSystem'?: string;
     'respiratorySystem'?: string;
@@ -22,6 +34,10 @@ export interface ExaminationRequest {
     'centralNervousSystem'?: string;
     'musculoskeletalSystem'?: string;
     'examinationFindings'?: string;
+    /**
+     * Confirmation that doctor reviewed vitals
+     */
+    'vitalsReviewed'?: boolean;
     'primaryDiagnosis'?: string;
     'primaryDiagnosisIcd10'?: string;
     'differentialDiagnosis'?: string;
@@ -29,5 +45,17 @@ export interface ExaminationRequest {
     'advice'?: string;
     'followUpDate'?: string;
     'followUpInstructions'?: string;
+    /**
+     * Confirmation that doctor reviewed medical history
+     */
+    'medicalHistoryReviewed'?: boolean;
+    /**
+     * Flag if medical history was updated during this visit
+     */
+    'medicalHistoryUpdated'?: boolean;
+    /**
+     * What changed in medical history during this visit
+     */
+    'medicalHistoryUpdateNotes'?: string;
 }
 

@@ -10,9 +10,11 @@ All URIs are relative to *http://localhost:8080*
 |[**getAllPatients**](#getallpatients) | **GET** /api/patients | Get all patients (paginated)|
 |[**getPatientById**](#getpatientbyid) | **GET** /api/patients/{id} | Get patient by ID|
 |[**getPatientByPatientId**](#getpatientbypatientid) | **GET** /api/patients/patient-id/{patientId} | Get patient by Patient ID|
+|[**getPatientMedicalHistory**](#getpatientmedicalhistory) | **GET** /api/patients/{id}/medical-history | Get patient medical history|
 |[**registerPatient**](#registerpatient) | **POST** /api/patients | Register multiple patients (batch registration)|
 |[**searchPatients**](#searchpatients) | **GET** /api/patients/search | Search patients|
 |[**updatePatient**](#updatepatient) | **PUT** /api/patients/{id} | Update patient|
+|[**updatePatientMedicalHistory**](#updatepatientmedicalhistory) | **PUT** /api/patients/{id}/medical-history | Update patient medical history|
 |[**uploadPatientsCsv**](#uploadpatientscsv) | **POST** /api/patients/upload-csv | Upload CSV file for bulk patient registration|
 
 # **activatePatient**
@@ -328,6 +330,59 @@ const { status, data } = await apiInstance.getPatientByPatientId(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **getPatientMedicalHistory**
+> MedicalHistoryResponse getPatientMedicalHistory()
+
+Retrieve medical history for a patient
+
+### Example
+
+```typescript
+import {
+    PatientManagementApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new PatientManagementApi(configuration);
+
+let id: number; //Patient database ID (default to undefined)
+
+const { status, data } = await apiInstance.getPatientMedicalHistory(
+    id
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **id** | [**number**] | Patient database ID | defaults to undefined|
+
+
+### Return type
+
+**MedicalHistoryResponse**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Medical history retrieved successfully |  -  |
+|**404** | Patient or medical history not found |  -  |
+|**401** | Access token is missing or invalid |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **registerPatient**
 > BatchPatientResponse registerPatient(patientRegistrationRequest)
 
@@ -494,6 +549,65 @@ const { status, data } = await apiInstance.updatePatient(
 |**404** | Patient not found |  -  |
 |**400** | Invalid input data |  -  |
 |**401** | Access token is missing or invalid |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **updatePatientMedicalHistory**
+> MedicalHistoryResponse updatePatientMedicalHistory(medicalHistoryRequest)
+
+Update medical history for a patient (only accessible by authorized medical staff)
+
+### Example
+
+```typescript
+import {
+    PatientManagementApi,
+    Configuration,
+    MedicalHistoryRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new PatientManagementApi(configuration);
+
+let id: number; //Patient database ID (default to undefined)
+let medicalHistoryRequest: MedicalHistoryRequest; //
+
+const { status, data } = await apiInstance.updatePatientMedicalHistory(
+    id,
+    medicalHistoryRequest
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **medicalHistoryRequest** | **MedicalHistoryRequest**|  | |
+| **id** | [**number**] | Patient database ID | defaults to undefined|
+
+
+### Return type
+
+**MedicalHistoryResponse**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Medical history updated successfully |  -  |
+|**404** | Patient not found |  -  |
+|**400** | Invalid input data |  -  |
+|**401** | Access token is missing or invalid |  -  |
+|**403** | Forbidden - Insufficient permissions |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

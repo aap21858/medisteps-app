@@ -58,8 +58,6 @@ export * from './staff-response';
 export * from './staff-role';
 export * from './staff-status';
 export * from './staff-update-request';
-export * from './triage-request';
-export * from './triage-response';
 export * from './update-appointment-status-request';
 export * from './update-prescription-status-request';
 export * from './update-staff200-response';
